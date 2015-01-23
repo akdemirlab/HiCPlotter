@@ -179,7 +179,7 @@ _Data taken from:_ 4C : [Noordermer et, al. Elife 2014](http://elifesciences.org
 
 ## Visualization of ChIP-Seq and RAP-Seq data as histograms
 
-_Data taken from:_ RAP-seq : [Engreitz et al. Science 2014](http://www.sciencemag.org/content/341/6147/1237973.long), Hi-C : [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517) and H3K27me3 : [Human ENCODE Project](http://www.mouseencode.org/)
+_Data taken from:_ RAP-seq : [Engreitz et al. Science 2014](http://www.sciencemag.org/content/341/6147/1237973.long), Hi-C : [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517) and H3K27me3 : [Mouse ENCODE Project](http://www.mouseencode.org/)
 
 _Rotated matrix can be removed with -ptr 0 parameter_
 
@@ -195,7 +195,7 @@ _Rotated matrix can be removed with -ptr 0 parameter_
 _Custom TADs can be plotted for each matrix by providing a bedGraph file (-pcdf file1 file2) and activating -pcd parameter._ 
 _Tiles can be colored for individual tiles by specified RGB colors in bedGraph file or all tiles can be colored by the same color identified with -tc parameter._ 
 
-_Data taken from:_ Hi-C and TADs : [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517) Polycomb State data : [Roadmap Epigenome Project](https://sites.google.com/site/anshulkundaje/projects/epigenomeroadmap#TOC-Auxiliary-Integrative-chromatin-state-maps-98-Epigenomes) and ChIP-Seq data : [Encode Project](http://www.genome.gov/encode/)
+_Data taken from:_ Hi-C and TADs : [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517) Polycomb State data : [Roadmap Epigenome Project](https://sites.google.com/site/anshulkundaje/projects/epigenomeroadmap#TOC-Auxiliary-Integrative-chromatin-state-maps-98-Epigenomes) and ChIP-Seq data : [Human ENCODE Project](http://www.genome.gov/encode/)
 	
  	python HiCPlotter.py -f data/HiC/Human/hES-nij.chr7.2 data/HiC/Human/IMR90-nij.chr7.2 -n hES IMR90 -chr chr7 -o HoxA -r 40000 -fh 0 -s 650 -e 700 -hist data/HiC/Human/H1.H3K27me3.chr7.bedGraph,data/HiC/Human/H1.Pol2.chr7.bedGraph,data/HiC/Human/H1ctcf.chr7.bedGraph,data/HiC/Human/H1.Rad21.chr7.bedGraph data/HiC/Human/IMR90.H3K27me3.chr7.bedGraph,data/HiC/Human/IMR90.Pol2.chr7.bedGraph,data/HiC/Human/IMR90ctcf.chr7.bedGraph,data/HiC/Human/IMR90.Rad21.chr7.bedGraph -hl H3K27ME3,PolII,CTCF,RAD21 H3K27ME3,PolII,CTCF,RAD21 -t data/HiC/Human/H1_18_core_K27ac_dense.ReprPC.2.bed data/HiC/Human/IMR90_18_core_K27ac_dense.ReprPC.2.bed -tl Polycomb Polycomb -pcd 1 -pcdf data/hESC_domains_hg19.bed data/IMR90_domains_hg19.bed 
 
