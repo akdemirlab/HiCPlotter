@@ -1,0 +1,7 @@
+# Unix binaries can be found here:
+
+https://github.com/ENCODE-DCC/kentUtils/tree/master/bin/linux.x86_64
+
+or here
+
+http://hgdownload.cse.ucsc.edu/admin/exe/
