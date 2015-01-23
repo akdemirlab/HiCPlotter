@@ -179,7 +179,7 @@ _Data taken from:_ 4C : [Noordermer et, al. Elife 2014](http://elifesciences.org
 
 ## Visualization of ChIP-Seq and RAP-Seq data as histograms
 
-_Data taken from:_ RAP-seq : [Engreitz et al. Science 2014](http://www.sciencemag.org/content/341/6147/1237973.long), Hi-C : [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517) and H3K27me3 : [Encode Project](http://www.mouseencode.org/)
+_Data taken from:_ RAP-seq : [Engreitz et al. Science 2014](http://www.sciencemag.org/content/341/6147/1237973.long), Hi-C : [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517) and H3K27me3 : [Human ENCODE Project](http://www.mouseencode.org/)
 
 _Rotated matrix can be removed with -ptr 0 parameter_
 
@@ -208,7 +208,7 @@ _Data taken from:_ Hi-C and TADs : [Dixon et, al. Nature 2012](http://www.nature
 
 _Arc plots require a bedGraph file (-a file1), color can be specied as a hexadecimal number (-ac B4B4B4) or for each arc by specified RGB colors in bedGraph file._
 
-_Data taken from:_ SMC ChIA-Pet and Polycomb Domains: [Dowen et, al. Cell 2014](http://www.sciencedirect.com/science/article/pii/S0092867414011799), Hi-C and TADs : [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517) and H3K27me3 : [Encode Project](http://www.mouseencode.org/)
+_Data taken from:_ SMC ChIA-Pet and Polycomb Domains: [Dowen et, al. Cell 2014](http://www.sciencedirect.com/science/article/pii/S0092867414011799), Hi-C and TADs : [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517) and H3K27me3 : [Mouse ENCODE Project](http://www.mouseencode.org/)
 	
 	python HiCPlotter.py -f data/HiC/Mouse/mES.chr3 -n mES -chr chr3 -o Bhlhe22 -r 40000 -s 400 -e 500 -a data/HiC/Mouse/mESC_SMC_ChIPPet.bed -al SMC -hist data/HiC/Mouse/GSM747534_chr3.bedGraph,data/HiC/Mouse/wgEncodeLicrHistoneEsb4H3k27me3ME0C57bl6StdSig.chr3.bedGraph -hl CTCF,H3K27me3 -pi 0 -ptr 0 -t data/HiC/Mouse/mm9_Polycomb_domains.bed -tl Polycomb -tc 00CCFF -ac B4B4B4 -fh 0
 
