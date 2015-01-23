@@ -1,4 +1,4 @@
-#HiC Plotter: Integrating HiC data with genomic datasets
+#HiCPlotter: Integrating HiC data with genomic datasets
 
 # About HiCPlotter:
 
