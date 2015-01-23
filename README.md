@@ -1,8 +1,8 @@
 #HiC Plotter: Integrating HiC data with genomic datasets
 
-# About HiC Plotter:
+# About HiCPlotter:
 
-HiC Plotter is a Python data visualization tool for integrating different data types with interaction matrixes. For more on 5C or HiC, please check:  <a class="reference external" href="http://www.nature.com/nrg/journal/v14/n6/full/nrg3454.html"> Dekker et al. 2013</a>.
+HiCPlotter is a Python data visualization tool for integrating different data types with interaction matrixes. For more on 5C or HiC, please check:  <a class="reference external" href="http://www.nature.com/nrg/journal/v14/n6/full/nrg3454.html"> Dekker et al. 2013</a>.
 
 _HiC Plotter is designed by Kadir Caner Akdemir (kcakedemir at mdanderson dot org) in Lynda Chin's Lab at the University of Texas MD Anderson Cancer Center, Houston, TX, USA._
 
@@ -12,9 +12,9 @@ Python 2.7.*
 
 [Numpy, Scipy, Matplotlib](http://www.scipy.org/).
 
-_HiC Plotter is tested on Mac OS (Mountain Lion and Yosemite) and Linux (RedHat 4.1.2-44 and 5.5-Final) systems._
+_HiCPlotter is tested on Mac OS (Mountain Lion and Yosemite) and Linux (RedHat 4.1.2-44 and 5.5-Final) systems._
 
-_HiC Plotter is purposefully designed with the least amount of dependencies to make it easily applicable._
+_HiCPlotter is purposefully designed with the least amount of dependencies to make it easily applicable._
 
 
 # Arguments:
