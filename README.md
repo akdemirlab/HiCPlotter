@@ -4,7 +4,7 @@
 
 HiCPlotter is a Python data visualization tool for integrating different data types with interaction matrixes. For more on 5C or HiC, please check:  <a class="reference external" href="http://www.nature.com/nrg/journal/v14/n6/full/nrg3454.html"> Dekker et al. 2013</a>.
 
-_HiC Plotter is designed by Kadir Caner Akdemir (kcakedemir at mdanderson dot org) in Lynda Chin's Lab at the University of Texas MD Anderson Cancer Center, Houston, TX, USA._
+_HiCPlotter is designed by Kadir Caner Akdemir (kcakedemir at mdanderson dot org) in Lynda Chin's Lab at the University of Texas MD Anderson Cancer Center, Houston, TX, USA._
 
 # Requirements:
 
@@ -54,7 +54,7 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
     heatmapColor: an integer for choosing heatmap color codes: Greys(0), Reds(1), YellowToBlue(2), YellowToRed(3-default), Hot(4), BlueToRed(5).
     cleanNANs: an integer for replacing NaNs in the matrix with zeros (1:default) or not (0).
     plotTriangular: an integer for plotting rotated half matrix (1:default) or not (0).
-    plotTadDomains: an integer for plotting TADs identified by HiC Plotter (1) or not (0:default).
+    plotTadDomains: an integer for plotting TADs identified by HiCPlotter (1) or not (0:default).
     plotPublishedTadDomins: an integer for plotting TADs from Dixon et, al. 2012 (1:default) or not (0).
     highResolution: an integer whether plotting high resolution (1:default) or not (0).
     plotInsulation: an integer for plotting insulation scores (1:default) or not (0).
@@ -68,7 +68,7 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
 
 ## Hi-C/5C matrix data
 
-For visualizing Hi-C or 5C data, HiC Plotter requires a matrix file (by default first line is ignored).
+For visualizing Hi-C or 5C data, HiCPlotter requires a matrix file (by default first line is ignored).
 
 Matrix files are plotted as their log2 values and color legend is put below the plot.
 
@@ -95,7 +95,7 @@ If your file (example is modified from [GSM873926](www.ncbi.nlm.nih.gov/geo/quer
 
 ## BedGraph
 
-For visualizing any type of genomic data, HiC Plotter uses bedGraph format.
+For visualizing any type of genomic data, HiCPlotter uses bedGraph format.
 	
 	
 	chromA  chromStartA  chromEndA  dataValueA color     text
@@ -109,7 +109,7 @@ For visualizing any type of genomic data, HiC Plotter uses bedGraph format.
 
 ## Peak File
 
-For annotating the interaction matrix, HiC Plotter requires the following format.
+For annotating the interaction matrix, HiCPlotter requires the following format.
 	
 	chromA	chromStartA  chromEndA	chromB	chromStartB chromEndB	color (optional)
 	chr10	100180000	100190000	chr10	100410000	100420000	0,255,255
@@ -131,7 +131,7 @@ _Hi-C and TADs data taken from:_ [Dixon et, al. Nature 2012](http://www.nature.c
 
 <figure>
   <figcaption align="middle">**Chromosome interactions at chromosome 21 in human ES cells**</figcaption>
-  <img src="examplePlots/default1-chr21.ofBins(0-1174).40K.jpeg" alt="Example plot from HiC Plotter">
+  <img src="examplePlots/default1-chr21.ofBins(0-1174).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## Focusing to a region within a chromosome
@@ -145,7 +145,7 @@ _TADs identified by Dixon et al. can be plotted with -pptd parameter._
 
 <figure>
   <figcaption align="middle">**Chromosome interactions at chromosome 21 in human ES cells**</figcaption>
-  <img src="examplePlots/default2-chr21.ofBins(600-900).40K.jpeg" alt="Example plot from HiC Plotter">
+  <img src="examplePlots/default2-chr21.ofBins(600-900).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## Visualization of multiple Hi-C datasets
@@ -158,7 +158,7 @@ _Color code of the heatmaps can be changed with -hmc parameter_
 
 <figure>
   <figcaption align="middle">**Chromosome interactions for wild type, RAD21-depleted, CTCF-depleted cells.**</figcaption>
-  <img src="examplePlots/Rad21.CTCF-chr6.ofBins(2800-2950).40K.jpeg" alt="Example plot from HiC Plotter">
+  <img src="examplePlots/Rad21.CTCF-chr6.ofBins(2800-2950).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 
@@ -174,7 +174,7 @@ _Data taken from:_ 4C : [Noordermer et, al. Elife 2014](http://elifesciences.org
 
 <figure>
   <figcaption align="middle">**3D compartments in the HoxD cluster in mouse ES cells**</figcaption>
-  <img src="examplePlots/HoxD-chr2.ofBins(1830-1880).40K.jpeg" alt="Example plot from HiC Plotter">
+  <img src="examplePlots/HoxD-chr2.ofBins(1830-1880).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## Visualization of ChIP-Seq and RAP-Seq data as histograms
@@ -187,7 +187,7 @@ _Rotated matrix can be removed with -ptr 0 parameter_
 
 <figure>
   <figcaption align="middle">**Xist spreading during initiation of X-chromosome inactivation**</figcaption>
-  <img src="examplePlots/RAP-chrX.ofBins(0-4167).40K.jpeg" alt="Example plot from HiC Plotter">
+  <img src="examplePlots/RAP-chrX.ofBins(0-4167).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## Plotting multiple conditions, visualization of ChIP-Seq as histograms and Chromatin states as tiles
@@ -201,7 +201,7 @@ _Data taken from:_ Hi-C and TADs : [Dixon et, al. Nature 2012](http://www.nature
 
 <figure>
   <figcaption align="middle">**HoxA locus in human ES and lung fibroblast cells**</figcaption>
-  <img src="examplePlots/HoxA-chr7.ofBins(650-700).40K.jpeg" alt="Example plot from HiC Plotter">
+  <img src="examplePlots/HoxA-chr7.ofBins(650-700).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## Visualization of ChIP-Seq as histograms, ChIA-Pet as arcs and Polycomb domains as tiles
@@ -210,11 +210,11 @@ _Arc plots require a bedGraph file (-a file1), color can be specied as a hexadec
 
 _Data taken from:_ SMC ChIA-Pet and Polycomb Domains: [Dowen et, al. Cell 2014](http://www.sciencedirect.com/science/article/pii/S0092867414011799), Hi-C and TADs : [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517) and H3K27me3 : [Mouse ENCODE Project](http://www.mouseencode.org/)
 	
-	python HiCPlotter.py -f data/HiC/Mouse/mES.chr3 -n mES -chr chr3 -o Bhlhe22 -r 40000 -s 400 -e 500 -a data/HiC/Mouse/mESC_SMC_ChIPPet.bed -al SMC -hist data/HiC/Mouse/GSM747534_chr3.bedGraph,data/HiC/Mouse/wgEncodeLicrHistoneEsb4H3k27me3ME0C57bl6StdSig.chr3.bedGraph -hl CTCF,H3K27me3 -pi 0 -ptr 0 -t data/HiC/Mouse/mm9_Polycomb_domains.bed -tl Polycomb -tc 00CCFF -ac B4B4B4 -fh 0
+	python s.py -f data/HiC/Mouse/mES.chr3 -n mES -chr chr3 -o Bhlhe22 -r 40000 -s 400 -e 500 -a data/HiC/Mouse/mESC_SMC_ChIPPet.bed -al SMC -hist data/HiC/Mouse/GSM747534_chr3.bedGraph,data/HiC/Mouse/wgEncodeLicrHistoneEsb4H3k27me3ME0C57bl6StdSig.chr3.bedGraph -hl CTCF,H3K27me3 -pi 0 -ptr 0 -t data/HiC/Mouse/mm9_Polycomb_domains.bed -tl Polycomb -tc 00CCFF -ac B4B4B4 -fh 0
 
 <figure>
   <figcaption align="middle">**Bhlhe22 locus in mouse ES cells**</figcaption>
-  <img src="examplePlots/Bhlhe22-chr3.ofBins(400-475).40K.jpeg" alt="Example plot from HiC Plotter">
+  <img src="examplePlots/Bhlhe22-chr3.ofBins(400-475).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## Visualization of 4C data as histograms and Enhancers as tiles with text
@@ -228,7 +228,7 @@ _Data taken from:_ 4C : [Lonfat et, al. Science 2014](http://www.sciencemag.org/
 
 <figure>
   <figcaption align="middle">**Interaction profiles of Hoxa13 gene with tissue specific enhancers**</figcaption>
-  <img src="examplePlots/Digit.vs.GT-chr6.ofBins(1295-1338).40K.jpeg" alt="Example plot from HiC Plotter">
+  <img src="examplePlots/Digit.vs.GT-chr6.ofBins(1295-1338).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## Highlighting selected loci on the plot
@@ -242,7 +242,7 @@ _Data taken from:_ Hi-C and Arrow domains  : [Rao et, al. Cell 2014](http://www.
 
 <figure>
   <figcaption align="middle">**Interaction profiles in chromosome 10 of GM12878 and K562 cells.**</figcaption>
-  <img src="examplePlots/High-chr10.ofBins(3000-3500).25K.jpeg" alt="Example plot from HiC Plotter">
+  <img src="examplePlots/High-chr10.ofBins(3000-3500).25K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## Annotating the interaction matrix
@@ -256,7 +256,7 @@ _Data taken from:_ Hi-C and HiCCUP peaks  : [Rao et, al. Cell 2014](http://www.c
 
 <figure>
   <figcaption align="middle">**Significantly interaction loci (peaks) in several cell lines.**</figcaption>
-  <img src="examplePlots/Loops-chr10.ofBins(3600-3675).25K.jpeg" alt="Example plot from HiC Plotter">
+  <img src="examplePlots/Loops-chr10.ofBins(3600-3675).25K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## Whole Genome Plotting
@@ -269,7 +269,7 @@ _Data taken from:_ Hi-C : [Seitan et, al. Genome Research 2014](http://genome.cs
 
 <figure>
   <figcaption align="middle">**T-cell whole genome interaction data in wild type and Rad21 knock-out cells**</figcaption>
-  <img src="examplePlots/Tcell-WholeGenome-1400K.jpeg" alt="Example plot from HiC Plotter">
+  <img src="examplePlots/Tcell-WholeGenome-1400K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## 5C data visualization
@@ -282,7 +282,7 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
 
 <figure>
   <figcaption align="middle">**Xist locus in mouse ES, mouse ES Xist deletion and MEF cells**</figcaption>
-  <img src="examplePlots/5C-chrX.ofBins(0-300).RandomBins.jpeg" alt="Example plot from HiC Plotter">
+  <img src="examplePlots/5C-chrX.ofBins(0-300).RandomBins.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 # Tips
@@ -296,7 +296,7 @@ If any of the imported packages are missing in your python system, try to commen
 	Original  :     from scipy.signal import argrelextrema (line 20)
 	Try this  :     #from scipy.signal import argrelextrema (line 20). Use HiCPlotter with the -pi 0 and -ptr 0
 
-If you like to run HiC Plotter in verbose mode, please use -v parameter which will create a log file with which parameters the program ran.
+If you like to run HiCPlotter in verbose mode, please use -v parameter which will create a log file with which parameters the program ran.
 
 # Help:
 
