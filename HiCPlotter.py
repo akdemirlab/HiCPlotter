@@ -836,7 +836,7 @@ if __name__=='__main__':
 	group1.add_argument('-sn', '--smoothNoise',type=float,default=0.5,metavar='',help="default: 0.5")
 	group1.add_argument('-cn', '--cleanNANs',type=int,default=True,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-hR', '--highResolution',type=int,default=True,metavar='',help="default: 1 - disable with 0")
-	group1.add_argument('-pi', '--plotInsulation',type=int,default=True,metavar='',help="default: 1 - disable with 0")
+	group1.add_argument('-pi', '--plotInsulation',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-ptr', '--plotTriangular',type=int,default=True,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-ptd', '--plotTadDomains',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-pcd', '--plotCustomDomains',type=int,default=False,metavar='',help="default: 0 - enable with 1")
