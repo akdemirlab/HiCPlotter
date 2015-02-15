@@ -12,6 +12,8 @@ Python 2.7.*
 
 [Numpy, Scipy, Matplotlib](http://www.scipy.org/).
 
+* Please note: Scipy.signal module should be installed. Default install script for scipy may not contain this module.
+
 _HiCPlotter is tested on Mac OS (Mountain Lion and Yosemite) and Linux (RedHat 4.1.2-44 and 5.5-Final) systems._
 
 _HiCPlotter is purposefully designed with the least amount of dependencies to make it easily applicable._
@@ -22,7 +24,7 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
 	Required parameters:
 
     files: a list of filenames to be plotted.
-    name: a list of labes for the experiment.
+    name: a list of labels for the experiment.
     chr: chromosome to be plotted.
     output: prefix for the output file.
     
