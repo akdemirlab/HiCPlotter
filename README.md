@@ -296,7 +296,7 @@ If your data contains several columns before data matrix, from command line you 
 If any of the imported packages are missing in your python system, try to comment out those lines. For example:
 
 	Original  :     from scipy.signal import argrelextrema (line 20)
-	Try this  :     #from scipy.signal import argrelextrema (line 20). Use HiCPlotter with the -pi 0 and -ptr 0
+	Try this  :     #from scipy.signal import argrelextrema (line 20). Use HiCPlotter with the -pi 0 and -ptd 0
 
 If you like to run HiCPlotter in verbose mode, please use -v parameter which will create a log file with which parameters the program ran.
 
