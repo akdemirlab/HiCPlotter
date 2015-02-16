@@ -125,7 +125,7 @@ For annotating the interaction matrix, HiCPlotter requires the following format.
 _**You can generate all of the following examples by using "sh testRun.sh", all of required files are in the data folder.**_
 
 ## Plotting whole chromosome
-_Please note -fh is set to 0 as the input matrix doesn't have a header line._
+_Please note: -fh is set to 0 as the input matrix doesn't have a header line._
 
 _Hi-C and TADs data taken from:_ [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517)
 
@@ -137,7 +137,7 @@ _Hi-C and TADs data taken from:_ [Dixon et, al. Nature 2012](http://www.nature.c
 </figure>
 
 ## Focusing to a region within a chromosome
-_Start and end locations can be specified as bin numbers with -s and -e parameters._
+_Start and end locations can be specified as bin numbers with -s and -e parameters. Use -pi 1 to identify putative TAD domains._
 
 _Color of triangles specify interaction frequency in a given TAD._
 
