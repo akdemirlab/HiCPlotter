@@ -143,7 +143,7 @@ _Color of triangles specify interaction frequency in a given TAD._
 
 _TADs identified by Dixon et al. can be plotted with -pptd parameter._	
 	
-	python HiCPlotter.py -f data/HiC/Human/hES-nij.chr21.2 -n hES -chr chr21 -r 40000 -o default2 -ptd 1 -pptd 1 -s 600 -e 900 -fh 0 -w 8 -tr 10
+	python HiCPlotter.py -f data/HiC/Human/hES-nij.chr21.2 -n hES -chr chr21 -r 40000 -o default2 -ptd 1 -pptd 1 -s 600 -e 900 -fh 0 -w 8 -tr 10 -pi 1
 
 <figure>
   <figcaption align="middle">**Chromosome interactions at chromosome 21 in human ES cells**</figcaption>
