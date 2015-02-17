@@ -59,7 +59,7 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
     plotTadDomains: an integer for plotting TADs identified by HiCPlotter (1) or not (0:default).
     plotPublishedTadDomins: an integer for plotting TADs from Dixon et, al. 2012 (1:default) or not (0).
     highResolution: an integer whether plotting high resolution (1:default) or not (0).
-    plotInsulation: an integer for plotting insulation scores (1:default) or not (0).
+    plotInsulation: an integer for plotting insulation scores (0:default) or plot (1).
     randomBins: an integer for plotting random resolution data (1:default) or not (0).
     wholeGenome: an integer for plotting whole genome interactions (1:default) or not (0).
     plotCustomDomains: a list of file names to be plotted beneath the matrix.
