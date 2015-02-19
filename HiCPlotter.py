@@ -25,7 +25,7 @@ import argparse
 import bisect
 import logging
 
-version = "0.3.24"
+version = "0.3.25"
 
 def read_HiCdata(filename,header=1,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -649,7 +649,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			for item in range(0,len(tricks)-1):
 				pts= np.array([[tricks[item],0],[tricks[item+1],0],[floor((tricks[item]+tricks[item+1])/2),0.75]])
 				p = Polygon(pts, closed=True,color='darkkhaki',alpha=max(nums[tricks[item]:tricks[item+1]])/max(nums))
-				if sum(nums[slice(tricks[item],tricks[item+1])]) > 150:
+				if sum(nums[slice(tricks[item],tricks[item+1])]) > np.percentile(np.array(nums),75):
 					ax5.add_patch(p)
 
 			if plotPublishedTadDomains:
