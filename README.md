@@ -12,7 +12,7 @@ Python 2.7.*
 
 [Numpy, Scipy, Matplotlib](http://www.scipy.org/).
 
-* Please note: Scipy.signal module should be installed. Default install script for scipy may not contain this module.
+* Please note: scipy, numpy and matplotlib modules should be installed and updated to current version. If you get error(s) related to one or more of these modules, refer to this [solution](https://github.com/kcakdemir/HiCPlotter/issues/1).
 
 _HiCPlotter is tested on Mac OS (Mountain Lion and Yosemite) and Linux (RedHat 4.1.2-44 and 5.5-Final) systems._
 
