@@ -12,7 +12,7 @@ Python 2.7.*
 
 [Numpy, Scipy, Matplotlib](http://www.scipy.org/).
 
-* Please note: scipy, numpy and matplotlib modules should be installed and updated to current version. If you get error(s) related to one or more of these modules, refer to this [solution](https://github.com/kcakdemir/HiCPlotter/issues/1).
+* Please note: scipy, numpy and matplotlib modules should be installed and updated to current version. If you get error(s) related to one or more of these modules, check this [solution](https://github.com/kcakdemir/HiCPlotter/issues/1).
 
 _HiCPlotter is tested on Mac OS (Mountain Lion and Yosemite) and Linux (RedHat 4.1.2-44 and 5.5-Final) systems._
 
@@ -291,7 +291,7 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
 
 If your data contains several columns before data matrix, from command line you could use: 
 	
-	awk -f N- matrix > new_matrix (where N is the ith column data values start)
+	cut -f N- matrix > new_matrix (where N is the ith column data values start)
 
 If any of the imported packages are missing in your python system, try to comment out those lines. For example:
 
