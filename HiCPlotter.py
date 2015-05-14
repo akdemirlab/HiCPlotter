@@ -529,8 +529,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 					comps2=array(y_comps)
 					ax3.fill_between(x_comps, comps2,0, color='gray', interpolate=True)
 					if ymin < 0: 
-						with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2,0, comps2>0, color='black', interpolate=True)
-						with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2, 0, where=comps2<0, color='gray', interpolate=True)
+						with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2,0, comps2>0, color='gray', interpolate=True)
+						with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
 				x_comps=[];x_comps2=[];y_comps=[];colors==[];	
 				if plotTadDomains:
 					ax3.set_xticks(tricks, minor=True)
