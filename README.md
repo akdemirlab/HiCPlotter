@@ -192,20 +192,6 @@ _Rotated matrix can be removed with -ptr 0 parameter_
   <img src="examplePlots/RAP-chrX.ofBins(0-4167).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
-## Plotting multiple conditions, visualization of ChIP-Seq as histograms and Chromatin states as tiles
-
-_Custom TADs can be plotted for each matrix by providing a bedGraph file (-pcdf file1 file2) and activating -pcd parameter._ 
-_Tiles can be colored for individual tiles by specified RGB colors in bedGraph file or all tiles can be colored by the same color identified with -tc parameter._ 
-
-_Data taken from:_ Hi-C and TADs : [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517) Polycomb State data : [Roadmap Epigenome Project](https://sites.google.com/site/anshulkundaje/projects/epigenomeroadmap#TOC-Auxiliary-Integrative-chromatin-state-maps-98-Epigenomes) and ChIP-Seq data : [Human ENCODE Project](http://www.genome.gov/encode/)
-	
- 	python HiCPlotter.py -f data/HiC/Human/hES-nij.chr7.2 data/HiC/Human/IMR90-nij.chr7.2 -n hES IMR90 -chr chr7 -o HoxA -r 40000 -fh 0 -s 650 -e 700 -hist data/HiC/Human/H1.H3K27me3.chr7.bedGraph,data/HiC/Human/H1.Pol2.chr7.bedGraph,data/HiC/Human/H1ctcf.chr7.bedGraph,data/HiC/Human/H1.Rad21.chr7.bedGraph data/HiC/Human/IMR90.H3K27me3.chr7.bedGraph,data/HiC/Human/IMR90.Pol2.chr7.bedGraph,data/HiC/Human/IMR90ctcf.chr7.bedGraph,data/HiC/Human/IMR90.Rad21.chr7.bedGraph -hl H3K27ME3,PolII,CTCF,RAD21 H3K27ME3,PolII,CTCF,RAD21 -t data/HiC/Human/H1_18_core_K27ac_dense.ReprPC.2.bed data/HiC/Human/IMR90_18_core_K27ac_dense.ReprPC.2.bed -tl Polycomb Polycomb -pcd 1 -pcdf data/hESC_domains_hg19.bed data/IMR90_domains_hg19.bed 
-
-<figure>
-  <figcaption align="middle">**HoxA locus in human ES and lung fibroblast cells**</figcaption>
-  <img src="examplePlots/HoxA-chr7.ofBins(650-700).40K.jpeg" alt="Example plot from HiCPlotter">
-</figure>
-
 ## Visualization of ChIP-Seq as histograms, ChIA-Pet as arcs and Polycomb domains as tiles
 
 _Arc plots require a bedGraph file (-a file1), color can be specied as a hexadecimal number (-ac B4B4B4) or for each arc by specified RGB colors in bedGraph file._
@@ -285,6 +271,44 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
 <figure>
   <figcaption align="middle">**Xist locus in mouse ES, mouse ES Xist deletion and MEF cells**</figcaption>
   <img src="examplePlots/5C-chrX.ofBins(0-300).RandomBins.jpeg" alt="Example plot from HiCPlotter">
+</figure>
+
+# Figures
+
+## Basic usage
+
+	python HiCPlotter.py -f data/HiC/Human/GM12878-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/K562-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/HUVEC-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/NHEK-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/IMR90-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt -n GM12878 K562 HUVEC NHEK IMR90 -chr chr10 -r 25000 -s 3000 -e 3500 -o Fig1 -fh 0
+
+<figure>
+  <figcaption align="middle">**Basic Usage of HiCPlotter**</figcaption>
+  <img src="examplePlots/Figure1.jpeg" alt="Example plot from HiCPlotter">
+</figure>
+
+## Adding tracks
+
+	python HiCPlotter.py -f data/HiC/Human/GM12878-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/K562-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/HUVEC-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/NHEK-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/IMR90-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt -n GM12878 K562 HUVEC NHEK IMR90 -chr chr10 -r 25000 -s 3000 -e 3500 -o Fig2 -hist data/HiC/Human/wgEncodeUwDnaseGm12878RawRep2.chr10.bedGraph,data/HiC/Human/wgEncodeBroadHistoneGm12878CtcfStdSig.chr10.bedGraph,data/HiC/Human/wgEncodeUwRepliSeqGm12878WaveSignalRep1.bedGraph data/HiC/Human/wgEncodeUwDnaseK562RawRep2.chr10.bedGraph,data/HiC/Human/wgEncodeBroadHistoneK562CtcfStdSig.chr10.bedGraph,data/HiC/Human/wgEncodeUwRepliSeqK562WaveSignalRep1.bedGraph data/HiC/Human/wgEncodeUwDnaseHuvecRawRep2.chr10.bedGraph,data/HiC/Human/wgEncodeBroadHistoneHuvecCtcfStdSig.chr10.bedGraph,data/HiC/Human/wgEncodeUwRepliSeqHuvecWaveSignalRep1.bedGraph data/HiC/Human/wgEncodeUwDnaseNhekRawRep2.chr10.bedGraph,data/HiC/Human/wgEncodeBroadHistoneNhekCtcfStdSig.chr10.bedGraph,data/HiC/Human/wgEncodeUwRepliSeqNhekWaveSignalRep1.bedGraph data/HiC/Human/wgEncodeOpenChromDnaseImr90BaseOverlapSignal.chr10.bedGraph,data/HiC/Human/wgEncodeSydhTfbsImr90CtcfbIggrabSig.chr10.bedGraph,data/HiC/Human/wgEncodeUwRepliSeqImr90WaveSignalRep1.bedGraph -fh 0 -fhist 0,0,1 0,0,1 0,0,1 0,0,1 0,0,1 -hl DNAse,CTCF,RepliSeq DNAse,CTCF,RepliSeq DNAse,CTCF,RepliSeq DNAse,CTCF,RepliSeq DNAse,CTCF,RepliSeq -hm 400,600,100 400,600,100 400,600,100 400,600,100 400,600,100 -pcd 1 -pcdf data/HiC/Human/GM12878_Arrowhead_domainlist.bed data/HiC/Human/K562_Arrowhead_domainlist.bed data/HiC/Human/HUVEC_Arrowhead_domainlist.bed data/HiC/Human/NHEK_Arrowhead_domainlist.bed data/HiC/Human/IMR90_Arrowhead_domainlist.txt -t data/HiC/Human/GM12878_18_core_K27ac_dense2.bed data/HiC/Human/K562_18_core_K27ac_dense2.bed data/HiC/Human/HUVEC_18_core_K27ac_dense2.bed NHEK_18_core_K27ac_dense2.bed data/HiC/Human/IMR90_18_core_K27ac_dense2.bed -tl ChromHMM ChromHMM ChromHMM ChromHMM ChromHMM -pptd 1 -high 1 -hf data/HiC/Human/fig2.bed 
+
+<figure>
+  <figcaption align="middle">**Adding tracks**</figcaption>
+  <img src="examplePlots/Figure2.jpeg" alt="Example plot from HiCPlotter">
+</figure>
+
+## Cohesin ChIA-PET interactions coincide with early replication sites
+
+	python HiCPlotter.py -f data/HiC/Human/GM12878-chr15_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/K562-chr15_25kb.RAWobserved_KRnormalizedMatrix.txt -n GM12878 K562 -chr chr15 -r 25000 -s 1800 -e 2250 -o Fig3 -hist data/HiC/Human/wgEncodeUwDnaseGm12878RawRep1.chr15.bedGraph,data/HiC/Human/wgEncodeBroadHistoneGm12878CtcfStdSig.chr15.bedGraph,data/HiC/Human/wgEncodeUwRepliSeqGm12878WaveSignalRep1.bedGraph data/HiC/Human/wgEncodeUwDnaseK562RawRep1.chr15.bedGraph,data/HiC/Human/wgEncodeBroadHistoneK562CtcfStdSig.chr15.bedGraph,data/HiC/Human/wgEncodeUwRepliSeqK562WaveSignalRep1.bedGraph -fh 0 -fhist 0,0,1 0,0,1 -hl DNase,CTCF,RepliSeq DNase,CTCF,RepliSeq -hm 400,400,100 400,400,100 -t data/HiC/Human/GM12878_Enhancer.bed,data/HiC/Human/GM12878_Txn.bed,data/HiC/Human/GM12878_Het.bed data/HiC/Human/K562_Enhancer.bed,data/HiC/Human/K562_Txn.bed,data/HiC/Human/K562_Het.bed -tl Enhancer,Transcribed,Heterochromatin Enhancer,Transcribed,Heterochromatin -a data/HiC/Human/GM12878.Rad21.bed data/HiC/Human/K562.Rad21.bed -al RAD21 RAD21 -ptr 0 -high 1 -hf data/HiC/Human/fig3.bed
+
+<figure>
+  <figcaption align="middle">**Cohesin ChIA-PET interactions coincide with early replication sites**</figcaption>
+  <img src="examplePlots/Figure3.jpeg" alt="Example plot from HiCPlotter">
+</figure>
+
+## A lincRNA locus exhibits active chromatin formation in K562 cells
+
+	python HiCPlotter.py -f data/HiC/Human/GM-chr19_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/K562-chr19_25kb.RAWobserved_KRnormalizedMatrix.txt -n GM12878 K562 -r 25000 -chr chr19 -hist data/HiC/Human/GM12878.DNAse.chr19.2.bedGraph,data/HiC/Human/GM12878.RnaSeq.chr19.2.bedGraph,wgEncodeUwRepliSeqGm12878WaveSignalRep1.bedGraph data/HiC/Human/K562.DNAse.chr19.2.bedGraph,data/HiC/Human/K562.RnaSeq.chr19.2.bedGraph,wgEncodeUwRepliSeqK562WaveSignalRep1.bedGraph -hl DNAse,RNASeq,RepliSeq DNAse,RNASeq,RepliSeq -t data/HiC/Human/GM12878_TSS+Trx.2.bed data/HiC/Human/K562_TSS+Trx.2.bed -tl ChromHMM ChromHMM -high 1 -hf data/HiC/Human/region.bed -o Figure4 -s 1100 -e 1302 -hm 300,300,100 300,300,100 -fh 0 -fhist 0,0,1 0,0,1 -ptr 0
+
+<figure>
+  <figcaption align="middle">**A lincRNA locus exhibits active chromatin formation in K562 cells**</figcaption>
+  <img src="examplePlots/Figure4.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 # Tips
