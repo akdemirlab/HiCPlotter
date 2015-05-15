@@ -137,7 +137,7 @@ _Hi-C and TADs data taken from:_ [Dixon et, al. Nature 2012](http://www.nature.c
 </figure>
 
 ## Focusing to a region within a chromosome
-_Start and end locations can be specified as bin numbers with -s and -e parameters. Use -pi 1 to identify putative TAD domains._
+_Start and end locations can be specified as bin numbers with -s and -e parameters._
 
 _Color of triangles specify interaction frequency in a given TAD._
 
