@@ -294,7 +294,7 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
 
 <figure>
   <figcaption align="middle">**Basic Usage of HiCPlotter**</figcaption>
-  <img src="examplePlots/Figure1.jpeg" alt="Example plot from HiCPlotter">
+  <img src="examplePlots/Figure1-chr10.ofBins(3000-3250).25K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## Adding tracks
@@ -303,7 +303,7 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
 
 <figure>
   <figcaption align="middle">**Adding tracks**</figcaption>
-  <img src="examplePlots/Figure2.jpeg" alt="Example plot from HiCPlotter">
+  <img src="examplePlots/Figure2-chr10.ofBins(3000-3500).25K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## Cohesin ChIA-PET interactions coincide with early replication sites
@@ -312,7 +312,7 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
 
 <figure>
   <figcaption align="middle">**Cohesin ChIA-PET interactions coincide with early replication sites**</figcaption>
-  <img src="examplePlots/Figure3.jpeg" alt="Example plot from HiCPlotter">
+  <img src="examplePlots/Figure3-chr15.ofBins(1800-2250).25K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## A lincRNA locus exhibits active chromatin formation in K562 cells
@@ -321,7 +321,7 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
 
 <figure>
   <figcaption align="middle">**A lincRNA locus exhibits active chromatin formation in K562 cells**</figcaption>
-  <img src="examplePlots/Figure4.jpeg" alt="Example plot from HiCPlotter">
+  <img src="examplePlots/Figure4-chr19.ofBins(1100-1302).25K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 # Tips
