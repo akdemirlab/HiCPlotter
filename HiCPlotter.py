@@ -25,7 +25,7 @@ import argparse
 import bisect
 import logging
 
-version = "0.3.25"
+version = "0.3.26"
 
 def read_HiCdata(filename,header=1,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -279,7 +279,7 @@ def insulation(matrix,w=5,tadRange=10):
 
 def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=1,fileFooter=1,\
 			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],window=5,tadRange=8,\
-			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,\
+			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,\
 			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[]):
 	
 	'''
@@ -321,6 +321,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     heatmapColor: an integer for choosing heatmap color codes: Greys(0), Reds(1), YellowToBlue(2), YellowToRed(3-default), Hot(4), BlueToRed(5).
     plotTriangular: an integer for plotting rotated half matrix (1:default) or not (0).
     plotTadDomains: an integer for plotting TADs identified by HiCPlotter (1) or not (0:default).
+    plotDomainsAsBars: an integer for plotting TADs as bars instead of triangles (1) or not (0:default).
     plotPublishedTadDomins: an integer for plotting TADs from Dixon et, al. 2012 (1:default) or not (0).
     highResolution: an integer whether plotting high resolution (1:default) or not (0).
     plotInsulation: an integer for plotting insulation scores (1:default) or not (0).
@@ -340,11 +341,11 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	if len(histograms)>0: numOfrows+=len(histograms[0].split(','))
 	if len(tilePlots)>0: numOfrows+=len(tilePlots[0].split(','))
 	if len(arcPlots)>0: numOfrows+=len(arcPlots[0].split(','))
-	if plotCustomDomains: numOfrows+=1
+	if plotCustomDomains or plotPublishedTadDomains: numOfrows+=1
 	
 	fig=plt.figure(figsize=(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5), facecolor='w', edgecolor='w')
 	fig.set_size_inches(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5)
-	fig.subplots_adjust(hspace=0.75,wspace=1.0)
+	fig.subplots_adjust(hspace=0.48,wspace=1.0)
 	
 	ymaxlims = []
 	yminlims = []
@@ -645,10 +646,14 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 		if plotTadDomains: 
 	
 			ax5 = plt.subplot2grid((numOfrows,4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
-	
+			
 			for item in range(0,len(tricks)-1):
-				pts= np.array([[tricks[item],0],[tricks[item+1],0],[floor((tricks[item]+tricks[item+1])/2),0.75]])
-				p = Polygon(pts, closed=True,color='darkkhaki',alpha=max(nums[tricks[item]:tricks[item+1]])/max(nums))
+				if plotDomainsAsBars:
+					if not plotPublishedTadDomains: p = Rectangle((tricks[item],0.2), (tricks[item+1]-tricks[item]), 0.25, color='darkkhaki',alpha=0.75)
+					else: p = Rectangle((tricks[item],0.1), (tricks[item+1]-tricks[item]), 0.15, color='darkkhaki',alpha=0.75)
+				else:
+					pts= np.array([[tricks[item],0],[tricks[item+1],0],[floor((tricks[item]+tricks[item+1])/2),0.75]])
+					p = Polygon(pts, closed=True,color='darkkhaki',alpha=max(nums[tricks[item]:tricks[item+1]])/max(nums))
 				if sum(nums[slice(tricks[item],tricks[item+1])]) > np.percentile(np.array(nums),75):
 					ax5.add_patch(p)
 
@@ -661,8 +666,11 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 						if tags[0]==chromosome:
 							Tstart = int(tags[1])/resolution
 							Tend = int(tags[2])/resolution
-							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.25]])
-							p = Polygon(pts, closed=True,color='salmon',alpha=0.5)
+							if plotDomainsAsBars:
+								p = Rectangle((Tstart,0.3), (Tend-Tstart), 0.15, color='salmon',alpha=0.75)
+							else:
+								pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.25]])
+								p = Polygon(pts, closed=True,color='salmon',alpha=0.5)
 							ax5.add_patch(p)
 					fone=open('data/hESC_domains_hg19.bed','r')
 					for line in fone.xreadlines():
@@ -670,10 +678,13 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 						if tags[0]==chromosome:
 							Tstart = int(tags[1])/resolution
 							Tend = int(tags[2])/resolution
-							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
-							p = Polygon(pts, closed=True,color='steelblue',alpha=0.25)
+							if plotDomainsAsBars:
+								p = Rectangle((Tstart,0.5), (Tend-Tstart), 0.15, color='steelblue',alpha=0.75)
+							else:
+								pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
+								p = Polygon(pts, closed=True,color='steelblue',alpha=0.5)
 							ax5.add_patch(p)
-					ax5.set_title('Khaki:%s - Blue:hES - Red:IMR90' % (name))
+					ax5.set_title('Khaki:%s - Blue:hES - Red:IMR90' % (name),fontsize=8)
 				else:
 					fone=open('data/mCortex_domains_mm9.bed','r')
 					for line in fone.xreadlines():
@@ -681,8 +692,11 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 						if tags[0]==chromosome:
 							Tstart = int(tags[1])/resolution
 							Tend = int(tags[2])/resolution
-							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.25]])
-							p = Polygon(pts, closed=True,color='salmon',alpha=0.5)
+							if plotDomainsAsBars:
+								p = Rectangle((Tstart,0.3), (Tend-Tstart), 0.15, color='salmon',alpha=0.75)
+							else:
+								pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.25]])
+								p = Polygon(pts, closed=True,color='salmon',alpha=0.5)
 							ax5.add_patch(p)
 					fone=open('data/mES_domains_mm9.bed','r')
 					for line in fone.xreadlines():
@@ -690,10 +704,13 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 						if tags[0]==chromosome:
 							Tstart = int(tags[1])/resolution
 							Tend = int(tags[2])/resolution
-							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
-							p = Polygon(pts, closed=True,color='steelblue',alpha=0.25)
+							if plotDomainsAsBars:
+								p = Rectangle((Tstart,0.5), (Tend-Tstart), 0.15, color='steelblue',alpha=0.75)
+							else:
+								pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
+								p = Polygon(pts, closed=True,color='steelblue',alpha=0.5)
 							ax5.add_patch(p)
-					ax5.set_title('Khaki:%s - Blue:mES - Red:Cortex' % (name))
+					ax5.set_title('Khaki:%s - Blue:mES - Red:Cortex' % (name),fontsize=8)
 			else:
 				ax5.set_title('Khaki:%s' % (name))
 				
@@ -714,8 +731,12 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax5 = plt.subplot2grid((numOfrows,4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
 			
 			for item in range(0,len(x_comps)):
-				pts= np.array([[x_comps[item],0],[x_comps2[item],0],[floor((x_comps[item]+x_comps2[item])/2),0.75]])
-				p = Polygon(pts, closed=True,color='darkkhaki',alpha=0.85)
+				if plotDomainsAsBars:
+					if not plotPublishedTadDomains: p = Rectangle((x_comps[item],0.2), (x_comps2[item]-x_comps[item]), 0.25, color='darkkhaki',alpha=0.75)
+					else: p = Rectangle((x_comps[item],0.1), (x_comps2[item]-x_comps[item]), 0.15, color='darkkhaki',alpha=0.75)
+				else:
+					pts= np.array([[x_comps[item],0],[x_comps2[item],0],[floor((x_comps[item]+x_comps2[item])/2),0.75]])
+					p = Polygon(pts, closed=True,color='darkkhaki',alpha=0.85)
 				ax5.add_patch(p)
 			
 			if plotPublishedTadDomains:
@@ -727,8 +748,11 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 						if tags[0]==chromosome:
 							Tstart = int(tags[1])/resolution
 							Tend = int(tags[2])/resolution
-							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.25]])
-							p = Polygon(pts, closed=True,color='salmon',alpha=0.5)
+							if plotDomainsAsBars:
+								p = Rectangle((Tstart,0.3), (Tend-Tstart), 0.15, color='salmon',alpha=0.75)
+							else:
+								pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.25]])
+								p = Polygon(pts, closed=True,color='salmon',alpha=0.5)
 							ax5.add_patch(p)
 					fone=open('data/hESC_domains_hg19.bed','r')
 					for line in fone.xreadlines():
@@ -736,10 +760,13 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 						if tags[0]==chromosome:
 							Tstart = int(tags[1])/resolution
 							Tend = int(tags[2])/resolution
-							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
-							p = Polygon(pts, closed=True,color='steelblue',alpha=0.25)
+							if plotDomainsAsBars:
+								p = Rectangle((Tstart,0.5), (Tend-Tstart), 0.15, color='steelblue',alpha=0.75)
+							else:
+								pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
+								p = Polygon(pts, closed=True,color='steelblue',alpha=0.5)
 							ax5.add_patch(p)
-					ax5.set_title('Khaki:%s - Blue:hES - Red:IMR90' % (name))
+					ax5.set_title('Khaki:%s - Blue:hES - Red:IMR90' % (name),fontsize=8)
 				else:
 					fone=open('data/mES_domains_mm9.bed','r')
 					for line in fone.xreadlines():
@@ -747,8 +774,11 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 						if tags[0]==chromosome:
 							Tstart = int(tags[1])/resolution
 							Tend = int(tags[2])/resolution
-							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.25]])
-							p = Polygon(pts, closed=True,color='salmon',alpha=0.5)
+							if plotDomainsAsBars:
+								p = Rectangle((Tstart,0.3), (Tend-Tstart), 0.15, color='salmon',alpha=0.75)
+							else:
+								pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.25]])
+								p = Polygon(pts, closed=True,color='salmon',alpha=0.5)
 							ax5.add_patch(p)
 					fone=open('data/mCortex_domains_mm9.bed','r')
 					for line in fone.xreadlines():
@@ -756,12 +786,15 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 						if tags[0]==chromosome:
 							Tstart = int(tags[1])/resolution
 							Tend = int(tags[2])/resolution
-							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
-							p = Polygon(pts, closed=True,color='steelblue',alpha=0.25)
+							if plotDomainsAsBars:
+								p = Rectangle((Tstart,0.5), (Tend-Tstart), 0.15, color='steelblue',alpha=0.75)
+							else:
+								pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
+								p = Polygon(pts, closed=True,color='steelblue',alpha=0.5)
 							ax5.add_patch(p)
-					ax5.set_title('Khaki:%s - Blue:mES - Red:Cortex' % (name))
+					ax5.set_title('Khaki:%s - Red:mES - Blue:Cortex' % (name),fontsize=8)
 			else:
-				ax5.set_title('Khaki:%s' % (name))
+				ax5.set_title('Khaki:%s' % (name),fontsize=8)
 				
 			ax5.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 			if exp==0: ax5.set_ylabel("Domains")
@@ -772,7 +805,71 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			else: ax5.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
 			ax5.set_ylim(0,0.75)
 			rowcounter+=1
-		
+		elif plotPublishedTadDomains:
+			ax5 = plt.subplot2grid((numOfrows,4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
+			if publishedTadDomainOrganism:
+				fone=open('data/IMR90_domains_hg19.bed','r')
+				for line in fone.xreadlines():
+					tags = line.strip().split("\t")
+					if tags[0]==chromosome:
+						Tstart = int(tags[1])/resolution
+						Tend = int(tags[2])/resolution
+						if plotDomainsAsBars:
+							p = Rectangle((Tstart,0.2), (Tend-Tstart), 0.15, color='salmon',alpha=0.75)
+						else:
+							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.25]])
+							p = Polygon(pts, closed=True,color='salmon',alpha=0.5)
+						ax5.add_patch(p)
+				fone=open('data/hESC_domains_hg19.bed','r')
+				for line in fone.xreadlines():
+					tags = line.strip().split("\t")
+					if tags[0]==chromosome:
+						Tstart = int(tags[1])/resolution
+						Tend = int(tags[2])/resolution
+						if plotDomainsAsBars:
+							p = Rectangle((Tstart,0.4), (Tend-Tstart), 0.15, color='steelblue',alpha=0.75)
+						else:
+							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
+							p = Polygon(pts, closed=True,color='steelblue',alpha=0.5)
+						ax5.add_patch(p)
+				ax5.set_title('Blue:hES - Red:IMR90',fontsize=8)
+			else:
+				fone=open('data/mCortex_domains_mm9.bed','r')
+				for line in fone.xreadlines():
+					tags = line.strip().split("\t")
+					if tags[0]==chromosome:
+						Tstart = int(tags[1])/resolution
+						Tend = int(tags[2])/resolution
+						if plotDomainsAsBars:
+							p = Rectangle((Tstart,0.2), (Tend-Tstart), 0.15, color='salmon',alpha=0.75)
+						else:
+							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.25]])
+							p = Polygon(pts, closed=True,color='salmon',alpha=0.5)
+						ax5.add_patch(p)
+				fone=open('data/mES_domains_mm9.bed','r')
+				for line in fone.xreadlines():
+					tags = line.strip().split("\t")
+					if tags[0]==chromosome:
+						Tstart = int(tags[1])/resolution
+						Tend = int(tags[2])/resolution
+						if plotDomainsAsBars:
+							p = Rectangle((Tstart,0.4), (Tend-Tstart), 0.15, color='steelblue',alpha=0.75)
+						else:
+							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
+							p = Polygon(pts, closed=True,color='steelblue',alpha=0.5)
+						ax5.add_patch(p)
+				ax5.set_title('Blue:mES - Red:Cortex',fontsize=8)
+				
+			ax5.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+			if exp==0: ax5.set_ylabel("Domains")
+			ax5.locator_params(axis='y',tight=False, nbins=3)
+			ax5.get_yaxis().set_label_coords(-0.125,0.5)
+			plt.setp(ax5.get_yticklabels(), visible=False)
+			if not randomBins : ax5.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
+			else: ax5.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
+			ax5.set_ylim(0,0.75)
+			rowcounter+=1
+
 		if not randomBins:		
 			ticks= ax1.get_xticks().tolist()
 			for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,1) 
@@ -840,6 +937,7 @@ if __name__=='__main__':
 	group1.add_argument('-ptr', '--plotTriangular',type=int,default=True,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-ptd', '--plotTadDomains',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-pcd', '--plotCustomDomains',type=int,default=False,metavar='',help="default: 0 - enable with 1")
+	group1.add_argument('-pdb', '--plotDomainsAsBars',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-pcdf', '--customDomainsFile',nargs='+',metavar='',default=[])
 	group1.add_argument('-pptd', '--plotPublishedTadDomains',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-ptdo', '--publishedTadDomainOrganism',type=int,default=True,metavar='',help="human(default): 1 - mouse: 0")

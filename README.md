@@ -12,7 +12,9 @@ Python 2.7.*
 
 [Numpy, Scipy, Matplotlib](http://www.scipy.org/).
 
-* Please note: scipy, numpy and matplotlib modules should be installed and updated to current version. If you get error(s) related to one or more of these modules, check this [solution](https://github.com/kcakdemir/HiCPlotter/issues/1).
+* Please note: scipy, numpy and matplotlib modules should be installed and updated to current version. Following versions of numpy (1.9.0, 1.9.2), scipy(0.14.0, 0.15.1) and matplotlib(1.3.1, 1.4.3) have been tested successfully.
+* If you receive error(s) related to one or more of these modules, check this [solution](https://github.com/kcakdemir/HiCPlotter/issues/1) and/or check versions of python and required modules.
+* If you receive an error about jpeg encoder, please check Tips section below.
 
 _HiCPlotter is tested on Mac OS (Mountain Lion and Yosemite) and Linux (RedHat 4.1.2-44 and 5.5-Final) systems._
 
@@ -58,6 +60,7 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
     plotTriangular: an integer for plotting rotated half matrix (1:default) or not (0).
     plotTadDomains: an integer for plotting TADs identified by HiCPlotter (1) or not (0:default).
     plotPublishedTadDomins: an integer for plotting TADs from Dixon et, al. 2012 (1:default) or not (0).
+    plotDomainsAsBars: an integer for plotting TADs as bars (1) instead of triangles (0:default)
     highResolution: an integer whether plotting high resolution (1:default) or not (0).
     plotInsulation: an integer for plotting insulation scores (0:default) or plot (1).
     randomBins: an integer for plotting random resolution data (1:default) or not (0).
@@ -94,6 +97,14 @@ If your file (example is modified from [GSM873926](www.ncbi.nlm.nih.gov/geo/quer
 	REV_2|mm9|chrX:98831149-98834145	REV_4|mm9|chrX:98837507-98840771	REV_6|mm9|chrX:98841228-98843248	REV_12|mm9|chrX:98855723-98862021
 	936.010581657246					743.499513378904					241.956223702097					23.2451328286973
 	69.8831429744098					513.412096905019					747.143877424081					7.1902317648089
+
+If your file is in bed file format as in [GSM1081531](http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM1081531), you can covert it to a matrix file with bedToMatrix.py in Utils directory.
+	
+	chr6	80000_120000	120000_160000	10.278
+	chr6	80000_120000	160000_200000	3.648
+	chr6	80000_120000	200000_240000	4.204
+	
+	*run python bedToMatrix.py [file_name] 
 
 ## BedGraph
 
@@ -142,6 +153,8 @@ _Start and end locations can be specified as bin numbers with -s and -e paramete
 _Color of triangles specify interaction frequency in a given TAD._
 
 _TADs identified by Dixon et al. can be plotted with -pptd parameter._	
+
+_TADs can be plotted as bars instead of triangles with -pdb parameter._
 	
 	python HiCPlotter.py -f data/HiC/Human/hES-nij.chr21.2 -n hES -chr chr21 -r 40000 -o default2 -ptd 1 -pptd 1 -s 600 -e 900 -fh 0 -w 8 -tr 10 -pi 1
 
@@ -313,16 +326,20 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
 
 # Tips
 
-If your data contains several columns before data matrix, from command line you could use: 
+*If your data contains several columns before data matrix, from command line you could use: 
 	
 	cut -f N- matrix > new_matrix (where N is the ith column data values start)
 
-If any of the imported packages are missing in your python system, try to comment out those lines. For example:
+*If any of the imported packages are missing in your python system, try to comment out those lines. For example:
 
 	Original  :     from scipy.signal import argrelextrema (line 20)
 	Try this  :     #from scipy.signal import argrelextrema (line 20). Use HiCPlotter with the -pi 0 and -ptd 0
 
-If you like to run HiCPlotter in verbose mode, please use -v parameter which will create a log file with which parameters the program ran.
+*If you received the following error: "IOError: encoder jpeg not available", please change extensions of '.jpeg' to '.png' after line 880.
+
+*If you like to run HiCPlotter in verbose mode, please use -v parameter which will create a log file with which parameters the program ran.
+
+*If you need to convert bigWig files to bedGraph files, you can use kentUtils/bigWigToBedGraph executable.
 
 # Help:
 
