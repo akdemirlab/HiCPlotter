@@ -163,6 +163,13 @@ _TADs can be plotted as bars instead of triangles with -pdb parameter._
   <img src="examplePlots/default2-chr21.ofBins(600-900).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
+	python HiCPlotter.py -f data/HiC/Human/hES-nij.chr21.2 -n hES -chr chr21 -r 40000 -o default2 -ptd 1 -pptd 1 -s 600 -e 900 -fh 0 -w 8 -tr 10 -pi 1 -pdb 1
+
+<figure>
+  <figcaption align="middle">**Domains as bars**</figcaption>
+  <img src="examplePlots/default2bars-chr21.ofBins(600-900).40K.jpeg" alt="Example plot from HiCPlotter">
+</figure>
+
 ## Visualization of multiple Hi-C datasets
 
 _Hi-C data taken from:_ [Zuin et, al. PNAS 2014](http://www.pnas.org/content/111/3/996.long)
