@@ -341,7 +341,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	if len(histograms)>0: numOfrows+=len(histograms[0].split(','))
 	if len(tilePlots)>0: numOfrows+=len(tilePlots[0].split(','))
 	if len(arcPlots)>0: numOfrows+=len(arcPlots[0].split(','))
-	if plotCustomDomains or plotPublishedTadDomains: numOfrows+=1
+	if plotCustomDomains or plotPublishedTadDomains and not plotTadDomains: numOfrows+=1
 	
 	fig=plt.figure(figsize=(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5), facecolor='w', edgecolor='w')
 	fig.set_size_inches(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5)
@@ -726,7 +726,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 		
 		'''TAD plotings - custom domains'''
 		
-		if plotCustomDomains:
+		if plotCustomDomains and not plotTadDomains:
 			x_comps,x_comps2,y_comps,colors,texts = read_bedGraph(customDomainsFile[exp],resolution,chromosome)
 			ax5 = plt.subplot2grid((numOfrows,4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
 			
@@ -764,7 +764,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 								p = Rectangle((Tstart,0.5), (Tend-Tstart), 0.15, color='steelblue',alpha=0.75)
 							else:
 								pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
-								p = Polygon(pts, closed=True,color='steelblue',alpha=0.5)
+								p = Polygon(pts, closed=True,color='steelblue',alpha=0.4)
 							ax5.add_patch(p)
 					ax5.set_title('Khaki:%s - Blue:hES - Red:IMR90' % (name),fontsize=8)
 				else:
@@ -790,7 +790,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 								p = Rectangle((Tstart,0.5), (Tend-Tstart), 0.15, color='steelblue',alpha=0.75)
 							else:
 								pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
-								p = Polygon(pts, closed=True,color='steelblue',alpha=0.5)
+								p = Polygon(pts, closed=True,color='steelblue',alpha=0.4)
 							ax5.add_patch(p)
 					ax5.set_title('Khaki:%s - Red:mES - Blue:Cortex' % (name),fontsize=8)
 			else:
@@ -805,7 +805,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			else: ax5.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
 			ax5.set_ylim(0,0.75)
 			rowcounter+=1
-		elif plotPublishedTadDomains:
+		elif plotPublishedTadDomains and not plotTadDomains:
 			ax5 = plt.subplot2grid((numOfrows,4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
 			if publishedTadDomainOrganism:
 				fone=open('data/IMR90_domains_hg19.bed','r')
@@ -830,7 +830,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 							p = Rectangle((Tstart,0.4), (Tend-Tstart), 0.15, color='steelblue',alpha=0.75)
 						else:
 							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
-							p = Polygon(pts, closed=True,color='steelblue',alpha=0.5)
+							p = Polygon(pts, closed=True,color='steelblue',alpha=0.4)
 						ax5.add_patch(p)
 				ax5.set_title('Blue:hES - Red:IMR90',fontsize=8)
 			else:
@@ -856,7 +856,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 							p = Rectangle((Tstart,0.4), (Tend-Tstart), 0.15, color='steelblue',alpha=0.75)
 						else:
 							pts= np.array([[Tstart,0],[Tend,0],[floor((Tstart+Tend)/2),0.4]])
-							p = Polygon(pts, closed=True,color='steelblue',alpha=0.5)
+							p = Polygon(pts, closed=True,color='steelblue',alpha=0.4)
 						ax5.add_patch(p)
 				ax5.set_title('Blue:mES - Red:Cortex',fontsize=8)
 				
