@@ -356,6 +356,6 @@ If you encounter any problems, please contact with - Kadir Akdemir (kcakedemir a
 
 Thanks to Lynda Chin for her leadership, management and support.
 
-Thanks to Zeynep Coban-Akdemir, Ian Watson, Denise Spring, Tony Gutschner, Kunal Rai and Samir Amin for their insightful comments.
+Thanks to Zeynep Coban-Akdemir, Ian Watson, Denise Spring, Jason Ernst, Tony Gutschner, Kunal Rai and Samir Amin for their insightful comments.
 
 We are grateful to many researchers cited above for providing their data in publicly available and easy-to-use format.
