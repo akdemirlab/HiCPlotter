@@ -29,7 +29,12 @@ def bedToMatrix():
 		if i in chromosome.keys():
 			for x in range(0,last_region):
 				if x == i:
-					writer.write(str(max_freq)+'\t')
+					if x not in chromosome[i].keys():
+						writer.write(str(max_freq)+'\t')
+					elif x in chromosome.keys() and i in chromosome[x].keys():
+						writer.write(str(chromosome[x][i])+'\t')
+					elif x in chromosome[i].keys():
+						writer.write(str(chromosome[i][x])+'\t')
 				else:
 					if x in chromosome[i].keys():
 						writer.write(str(chromosome[i][x])+'\t')
