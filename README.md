@@ -99,7 +99,7 @@ If your file (example is modified from [GSM873926](www.ncbi.nlm.nih.gov/geo/quer
 	69.8831429744098					513.412096905019					747.143877424081					7.1902317648089
 
 If your file is in bed file format as in [GSM1081531](http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM1081531), you can covert it to a matrix file with bedToMatrix.py in Utils directory.
-Each file should have one chromosome information. To split the files, you can use -> awk '{if($1==CHR) print}' [filename] > [newfile]	
+Each file should have data from one chromosome. To split the files, you can use -> awk '{if($1==chr6) print}' [filename] > [newfile]	
 
 	chr6	80000_120000	120000_160000	10.278
 	chr6	80000_120000	160000_200000	3.648
