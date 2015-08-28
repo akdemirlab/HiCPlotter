@@ -1,12 +1,12 @@
 #HiCPlotter: Integrating HiC data with genomic datasets
 
-# About HiCPlotter:
+# About HiCPlotter
 
 HiCPlotter is a Python data visualization tool for integrating different data types with interaction matrixes. For more on 5C or HiC, please check:  <a class="reference external" href="http://www.nature.com/nrg/journal/v14/n6/full/nrg3454.html"> Dekker et al. 2013</a>.
 
 _HiCPlotter is designed by Kadir Caner Akdemir (kcakedemir at mdanderson dot org / find me on [Twitter](https://twitter.com/canerakdemir)) in Lynda Chin's Lab at the University of Texas MD Anderson Cancer Center, Houston, TX, USA._
 
-# Requirements:
+# Requirements
 
 Python 2.7.*
 
@@ -21,7 +21,7 @@ _HiCPlotter is tested on Mac OS (Mountain Lion and Yosemite) and Linux (RedHat 4
 _HiCPlotter is purposefully designed with the least amount of dependencies to make it easily applicable._
 
 
-# Arguments:
+# Arguments
 
 	Required parameters:
 
@@ -130,7 +130,7 @@ For annotating the interaction matrix, HiCPlotter requires the following format.
 	chr10	101600000	101610000	chr10	101800000	101810000	0,255,255
 	chr10	102100000	102105000	chr10	102190000	102195000	0,255,255
 
-# Usage:
+# Usage
 
 	python HiCPlotter.py -f file1 file2 -n name1 name2 -chr chrX -o output
 
@@ -185,7 +185,7 @@ _Color code of the heatmaps can be changed with -hmc parameter_
 </figure>
 
 
-# Example cases with publicly available datasets:
+# Example cases with publicly available datasets
 
 ## Visualization of ChIP-Seq and 4C data as histograms
 
@@ -351,7 +351,7 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
 
 # Help:
 
-If you encounter any problems, please contact with - Kadir Akdemir (kcakedemir at mdanderson dot org) or Dr. Lynda Chin (lchin at mdanderson dot org).
+If you encounter any problems, please contact with - Kadir Akdemir (kcakedemir at mdanderson dot org).
 
 # License
 
