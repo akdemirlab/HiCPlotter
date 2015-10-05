@@ -3,6 +3,7 @@
 # About HiCPlotter
 
 HiCPlotter is a Python data visualization tool for integrating different data types with interaction matrixes. For more on 5C or HiC, please check:  <a class="reference external" href="http://www.nature.com/nrg/journal/v14/n6/full/nrg3454.html"> Dekker et al. 2013</a>.
+
 If you use HiCPlotter in your studies, please cite our publication in [Genome Biology] (http://www.genomebiology.com/2015/16/1/198)
 
 _HiCPlotter is designed by Kadir Caner Akdemir (kcakedemir at mdanderson dot org / find me on [Twitter](https://twitter.com/canerakdemir)) in Lynda Chin's Lab at the University of Texas MD Anderson Cancer Center, Houston, TX, USA._
