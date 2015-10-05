@@ -715,7 +715,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				ax5.set_title('Khaki:%s' % (name))
 				
 			ax5.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
-			if exp==0: ax5.set_ylabel("TAD borders")
+			if exp==0: ax5.set_ylabel("Domains")
 			ax5.locator_params(axis='y',tight=False, nbins=3)
 			ax5.get_yaxis().set_label_coords(-0.125,0.5)
 			plt.setp(ax5.get_yticklabels(), visible=False)
