@@ -27,49 +27,49 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
 
 	Required parameters:
 
-    files: a list of filenames to be plotted.
-    name: a list of labels for the experiment.
-    chr: chromosome to be plotted.
-    output: prefix for the output file.
+    files 			(-f)		: a list of filenames to be plotted.
+    name 			(-n) 		: a list of labels for the experiment.
+    chr				(-chr)		: chromosome to be plotted.
+    output			(-o)		: prefix for the output file.
     
     Optional parameters:
     
-    verbose: print version and arguments into a file
-    histograms: a list of filenames to be plotted as histogram.
-    histLabels: a list of labels for the histograms.
-    fillHist: a list whether each histogram will be filled (1) or not (0:default).
-    histMax : a list of integer for maximum values of histograms.
-    start: retain after x-th bin (0:default).
-    end: continues until x-th bin (default: length of the matrix).
-    resolution: resolution of the bins (default: 100000).
-    tilePlots: a list of filenames to be plotted as tile plots.
-    tileLabels: a list of labels for the tile plots.
-    tileColors: a list of hexadecimal numbers for coloring the tile plots.
-    tileText: an integer whether text will be displayed above tiles (0:default) or not (1).
-    arcPlots: a list of filenames to be plotted as arc plots.
-    arcLabels: a list of labels for the arc plots.
-    arcColors: a list of hexadecimal numbers for coloring the arc plots.
-    highlights: an integer for enabling highlights on the plot (0:default), enable(1). 
-    highFile: a file name for a bed file to highlight selected intervals.
-    peakFiles : a list of filenames to be plotted on the matrix.
-    window: an integer of distance to calculate insulation score.
-    tadRange: an integer of window to calculate local minima for TAD calls.
-    fileHeader: an integer for how many lines should be ignored in the matrix file (1:default).
-    fileFooter: an integer for how many lines should be skipped at the end of the matrix file (0:default).
-    smoothNoise: a floating-point number to clean noise in the data.
-    heatmapColor: an integer for choosing heatmap color codes: Greys(0), Reds(1), YellowToBlue(2), YellowToRed(3-default), Hot(4), BlueToRed(5).
-    cleanNANs: an integer for replacing NaNs in the matrix with zeros (1:default) or not (0).
-    plotTriangular: an integer for plotting rotated half matrix (1:default) or not (0).
-    plotTadDomains: an integer for plotting TADs identified by HiCPlotter (1) or not (0:default).
-    plotPublishedTadDomins: an integer for plotting TADs from Dixon et, al. 2012 (1:default) or not (0).
-    plotDomainsAsBars: an integer for plotting TADs as bars (1) instead of triangles (0:default)
-    highResolution: an integer whether plotting high resolution (1:default) or not (0).
-    plotInsulation: an integer for plotting insulation scores (0:default) or plot (1).
-    randomBins: an integer for plotting random resolution data (1:default) or not (0).
-    wholeGenome: an integer for plotting whole genome interactions (1:default) or not (0).
-    plotCustomDomains: a list of file names to be plotted beneath the matrix.
-    publishedTadDomainOrganism : an integer for plotting human (1:default) or mouse (0) TADs from Dixon et, al. 2012.
-    customDomainsFile: a list of filenames to be plotted as TADs for each experiments.
+    verbose			(-v)		: print version and arguments into a file
+    histograms		(-hist)		: a list of filenames to be plotted as histogram.
+    histLabels		(-h)		: a list of labels for the histograms.
+    fillHist		(-fhist)	: a list whether each histogram will be filled (1) or not (0:default).
+    histMax 		(-hm)		: a list of integer for maximum values of histograms.
+    start			(-s)		: retain after x-th bin (0:default).
+    end				(-e)		: continues until x-th bin (default: length of the matrix).
+    resolution		(-r)		: resolution of the bins (default: 100000).
+    tilePlots		(-t)		: a list of filenames to be plotted as tile plots.
+    tileLabels		(-tl)		: a list of labels for the tile plots.
+    tileColors		(-tc)		: a list of hexadecimal numbers for coloring the tile plots.
+    tileText		(-tt)		: an integer whether text will be displayed above tiles (0:default) or not (1).
+    arcPlots		(-a)		: a list of filenames to be plotted as arc plots.
+    arcLabels		(-al)		: a list of labels for the arc plots.
+    arcColors		(-ac)		: a list of hexadecimal numbers for coloring the arc plots.
+    highlights		(-high)		: an integer for enabling highlights on the plot (0:default), enable(1). 
+    highFile		(-hf)		: a file name for a bed file to highlight selected intervals.
+    peakFiles 		(-peak)		: a list of filenames to be plotted on the matrix.
+    window			(-w)		: an integer of distance to calculate insulation score.
+    tadRange		(-tr)		: an integer of window to calculate local minima for TAD calls.
+    fileHeader		(-fh)		: an integer for how many lines should be ignored in the matrix file (1:default).
+    fileFooter		(-ff)		: an integer for how many lines should be skipped at the end of the matrix file (0:default).
+    smoothNoise		(-sn)		: a floating-point number to clean noise in the data.
+    heatmapColor	(-hmc)		: an integer for choosing heatmap color codes: Greys(0), Reds(1), YellowToBlue(2), YellowToRed(3-default), Hot(4), BlueToRed(5).
+    cleanNANs		(-cn)		: an integer for replacing NaNs in the matrix with zeros (1:default) or not (0).
+    plotTriangular	(-ptr)		: an integer for plotting rotated half matrix (1:default) or not (0).
+    plotTadDomains	(-ptd)		: an integer for plotting TADs identified by HiCPlotter (1) or not (0:default).
+    plotPublishedTadDomins	(-pptd)	: an integer for plotting TADs from Dixon et, al. 2012 (1:default) or not (0).
+    plotDomainsAsBars		(-ptdb)	: an integer for plotting TADs as bars (1) instead of triangles (0:default)
+    highResolution	(-hR)		: an integer whether plotting high resolution (1:default) or not (0).
+    plotInsulation	(-pi)		: an integer for plotting insulation scores (0:default) or plot (1).
+    randomBins		(-rb)		: an integer for plotting random resolution data (1:default) or not (0).
+    wholeGenome		(-wg)		: an integer for plotting whole genome interactions (1:default) or not (0).
+    plotCustomDomains		(-pcd)	: a list of file names to be plotted beneath the matrix.
+    publishedTadDomainOrganism 	(-ptdo)	: an integer for plotting human (1:default) or mouse (0) TADs from Dixon et, al. 2012.
+    customDomainsFile			(-pcdf)	: a list of filenames to be plotted as TADs for each experiments.
 
 # Input Files
 
