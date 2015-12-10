@@ -19,13 +19,14 @@ from matplotlib.ticker  import MultipleLocator
 from matplotlib.patches import Polygon, Rectangle, Circle
 from scipy.signal import argrelextrema
 from scipy import ndimage
+import scipy.sparse as sps
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import bisect
 import logging
 
-version = "0.3.26"
+version = "0.4.01"
 
 def read_HiCdata(filename,header=1,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -42,7 +43,7 @@ def read_HiCdata(filename,header=1,footer=0,clean_nans=True,smooth_noise=0.5,ins
     
     returns:
     
-    matrix: data matrix over the selected set of chromosomes.
+    matrix: data matrix over the selected set of chromosome.
     nums: insulation scores array.
     tricks: putative insulator sites
 
@@ -65,6 +66,79 @@ def read_HiCdata(filename,header=1,footer=0,clean_nans=True,smooth_noise=0.5,ins
 	if clean_nans: matrix[np.isnan(matrix)]=0
 	matrix[matrix<smooth_noise]=0
 	return matrix,nums,tricks
+
+
+def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
+	
+	'''
+    load Hi-C interaction matrix from triple-column sparse file
+    
+    parameters:
+
+    filename: file name. format "bin1\tbin2\tdata\n..."
+    chromosome: plotting which chromosome
+    bedFile: a bed file for locations of bins
+    startBin: starting bin - 0 zero-based
+    endBin: end point for the plot
+    smooth_noise: variable values under will be replace with 0's to clean noise in the matrix
+    ins_window: window size for scanning diagonal of the matrix for insulation scores
+    rel_window: relative extrama extension size - will be extend to both directions
+    
+    returns:
+    
+    matrix: data matrix over the selected set of chromosome.
+    nums: insulation scores array.
+    tricks: putative insulator sites
+
+    '''
+		
+	chromosomes = {}
+	
+	try:
+		bed = open(bedFile,'r') 
+	except IOError:
+		print >>sys.stderr, 'cannot open', bedFile
+		raise SystemExit
+	
+	for line in bed.readlines():
+		tags = line.strip().split("\t")
+		if tags[0] not in chromosomes.keys():
+			chromosomes[tags[0]]=[]
+			chromosomes[tags[0]].append(int(tags[3]))
+		else: chromosomes[tags[0]].append(int(tags[3]))
+	
+	clast = chromosomes[chromosome][-1]-1
+	start = chromosomes[chromosome][0]+startBin
+	end = chromosomes[chromosome][0]+endBin
+	
+	end=clast if end == chromosomes[chromosome][0] else end
+	if end > clast: end=clast
+	if start > clast: start=chromosomes[chromosome][0]
+	
+	length = end-start+1
+	
+	mtx = sps.dok_matrix((length, length), dtype=np.int)
+	
+	try:
+		matrixFile = open(filename,'r') 
+	except IOError:
+		print >>sys.stderr, 'cannot open', filename
+		raise SystemExit
+	
+	for line in matrixFile.xreadlines():
+		tags = line.strip().split("\t")
+		if int(tags[0]) <= end and int(tags[0])>=start :
+			if int(tags[1]) <= end and int(tags[1])>=start :
+				mtx[int(tags[0])-start, int(tags[1])-start] = int(tags[2])
+		if int(tags[0]) > end: break
+	
+	matrix = mtx.todense()
+	
+	if plotInsulation or plotTadDomains: nums,tricks=insulation(matrix,ins_window,rel_window)
+	else: nums=[];tricks=[];
+	
+	#matrix[matrix<smooth_noise]=0
+	return matrix,nums,tricks,clast-chromosomes[chromosome][0]+1
 
 def read_bedGraph(filename,resolution,chromosome): # add stopping after certain chromosome passed
 	
@@ -277,8 +351,8 @@ def insulation(matrix,w=5,tadRange=10):
 	
 	return scores, pBorders
 
-def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=1,fileFooter=1,\
-			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],window=5,tadRange=8,\
+def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=1,fileFooter=1,matrixMax=0,\
+			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],window=5,tadRange=8,tripleColumn=False,bedFile='',\
 			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,\
 			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[]):
 	
@@ -294,7 +368,9 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     
     Optional parameters:
     
-    verbose: print version and arguments into a file
+    verbose: print version and arguments into a file.
+    tripleColumn: an integer if input file format is triple-column sparse file.
+    bedFile: if tripleColumn is activated, required for chromosome bin~positions.
     histograms: a list of filenames to be plotted as histogram.
     histLabels: a list of labels for the histograms.
     fillHist: a list whether each histogram will be filled (1) or not (0:default).
@@ -302,6 +378,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     start: retain after x-th bin (0:default).
     end: continues until x-th bin (default: length of the matrix).
     resolution: resolution of the bins (default: 100000).
+    matrixMax: an integer value for the interaction matrix heatmap scale upper-limit.
     tilePlots: a list of filenames to be plotted as tile plots.
     tileLabels: a list of labels for the tile plots.
     tileColors: a list of hexadecimal numbers for coloring the tile plots.
@@ -362,18 +439,28 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	
 	for exp in range(0,len(files)):
 		rowcounter=0
-		matrix,nums,tricks=read_HiCdata(files[exp],fileHeader,fileFooter,cleanNANs,smoothNoise,window,tadRange,plotInsulation,plotTadDomains,randomBins)
-		end=len(matrix) if end == 0 else end
-		if end > len(matrix): end=len(matrix)
-		size=end-start
-		if exp == 0 : mlength = len(matrix)
-		elif len(matrix) != mlength and not randomBins:
-			print len(matrix), mlength
-			print >>sys.stderr, 'unbalaced matrix size of '+files[exp]+' compared to '+files[0]+' ! matrix sizes should be equal'
-			raise SystemExit
-			
-		matrix=matrix[start:end,start:end]
 		
+		if not tripleColumn:
+			matrix,nums,tricks=read_HiCdata(files[exp],fileHeader,fileFooter,cleanNANs,smoothNoise,window,tadRange,plotInsulation,plotTadDomains,randomBins)
+			end=len(matrix) if end == 0 else end
+			if end > len(matrix): end=len(matrix)
+			size=end-start
+			if exp == 0 : mlength = len(matrix)
+			elif len(matrix) != mlength and not randomBins:
+				print len(matrix), mlength
+				print >>sys.stderr, 'unbalaced matrix size of '+files[exp]+' compared to '+files[0]+' ! matrix sizes should be equal'
+				raise SystemExit
+			
+			matrix=matrix[start:end,start:end]
+		else:
+			if bedFile == '':
+				print >>sys.stderr, 'an annotation bed file is required for triple-column sparse input.'
+				raise SystemExit
+			matrix,nums,tricks,clength=read_sparseHiCdata(files[exp],chromosome,bedFile,start,end,window,tadRange,plotInsulation,plotTadDomains,randomBins)
+			if end > clength: end=clength
+			end=clength if end == 0 else end
+			size=end-start
+			
 		length = len(matrix)
 		name=names[exp]	
 		schr=chromosome.replace("chr","")
@@ -388,6 +475,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			elif randomBins: ax1.set_ylabel('log2(interaction matrix) - %s (Genomic Bins)' % (chromosome))
 			elif wholeGenome: ax1.set_ylabel('')
 			cmatrix = log2(pow(2, ceil(log2(max(matrix))/log2(2))))
+			if matrixMax !=0: cmatrix = matrixMax
 			
 		ax1.set_ylim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 		ax1.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
@@ -906,6 +994,8 @@ if __name__=='__main__':
 	group1 = parser.add_argument_group("Optional Parameters")
 	group1.add_argument('-h', '--help', action="help")
 	group1.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true",default=False)
+	group1.add_argument('-tri', '--tripleColumn',default=False,type=int,metavar='',help='default:0 - enable with 1')
+	group1.add_argument('-bed', '--bedFile',default='',metavar='',help='')
 	group1.add_argument('-hist', '--histograms', nargs='+',metavar='',default=[])
 	group1.add_argument('-hl', '--histLabels', nargs='+',metavar='',default=[])
 	group1.add_argument('-hm', '--histMax', nargs='+',metavar='',default=[])
@@ -931,10 +1021,11 @@ if __name__=='__main__':
 	group1.add_argument('-tr', '--tadRange',type=int,default=8,metavar='',help="default: 8")
 	group1.add_argument('-hmc', '--heatmapColor',type=int,default=3,metavar='',help="Colors for heatmap: Greys(0), Reds(1), YellowToBlue(2), YellowToRed(3-default), Hot(4), BlueToRed(5)")
 	group1.add_argument('-sn', '--smoothNoise',type=float,default=0.5,metavar='',help="default: 0.5")
+	group1.add_argument('-mm', '--matrixMax',type=int,default=10,metavar='',help="default: 0")
 	group1.add_argument('-cn', '--cleanNANs',type=int,default=True,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-hR', '--highResolution',type=int,default=True,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-pi', '--plotInsulation',type=int,default=False,metavar='',help="default: 0 - enable with 1")
-	group1.add_argument('-ptr', '--plotTriangular',type=int,default=True,metavar='',help="default: 1 - disable with 0")
+	group1.add_argument('-ptr', '--plotTriangular',type=int,default=False,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-ptd', '--plotTadDomains',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-pcd', '--plotCustomDomains',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-pdb', '--plotDomainsAsBars',type=int,default=False,metavar='',help="default: 0 - enable with 1")

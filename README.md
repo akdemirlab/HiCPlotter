@@ -34,7 +34,9 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
     
     Optional parameters:
     
-    verbose			(-v)		: print version and arguments into a file
+    verbose			(-v)		: print version and arguments into a file.
+    tripleColumn	(-tri)		: an integer if input file is from HiC-Pro pipeline.
+    bedFile			(-bed)		: a file name for bin annotations, if -tri parameter is set.
     histograms		(-hist)		: a list of filenames to be plotted as histogram.
     histLabels		(-h)		: a list of labels for the histograms.
     fillHist		(-fhist)	: a list whether each histogram will be filled (1) or not (0:default).
@@ -42,6 +44,7 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
     start			(-s)		: retain after x-th bin (0:default).
     end				(-e)		: continues until x-th bin (default: length of the matrix).
     resolution		(-r)		: resolution of the bins (default: 100000).
+    matrixMax		(-mm)		: an integer value for the interaction matrix heatmap scale upper-limit.
     tilePlots		(-t)		: a list of filenames to be plotted as tile plots.
     tileLabels		(-tl)		: a list of labels for the tile plots.
     tileColors		(-tc)		: a list of hexadecimal numbers for coloring the tile plots.
@@ -108,6 +111,27 @@ Each file should have data from one chromosome. To split the file, you can use -
 	chr6	80000_120000	200000_240000	4.204
 	
 	*run python bedToMatrix.py [file_name] 
+
+HiCPlotter now accepts the output format of HiC-Pro [pipeline](https://github.com/nservant/HiC-Pro), where the matrix file is a three column sparse format in which first two columns are interacting bins and third column is interaction frequency. Bins do not interact with each other (with score 0) are listed in the file. 
+	
+	1050	1586	1
+	1050	1589	1
+	1050	1590	1 (jumps to 1612)
+	1050	1612	2
+
+An annotation file (bed format) is also required to denote the bins actual chromosomal locations. Fourth column is the bin number inside the matrix file.
+
+	chr1	20960000	20980000	1049
+	chr1	20980000	21000000	1050
+	chr1	21000000	21020000	1051
+	chr1	21020000	21040000	1052
+	chr1	21040000	21060000	1053
+	chr1	21060000	21080000	1054
+	chr1	21080000	21100000	1055
+	
+User should set -tri parameter to 1 and provide the bin-annotation bed file with -bed FILENAME. An example usage:
+	
+	python HiCPlotter.py -f GSE35156_GSM892306_hESC.40000.matrix -chr chr7 -o Example -r 40000 -tri 1 -bed GSE35156_GSM892306_hESC.40000_ord.bed -n hES -s 650 -e 700 
 
 ## BedGraph
 
