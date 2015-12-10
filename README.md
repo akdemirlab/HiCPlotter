@@ -112,6 +112,8 @@ Each file should have data from one chromosome. To split the file, you can use -
 	
 	*run python bedToMatrix.py [file_name] 
 
+### Triplet sparse format
+
 HiCPlotter now accepts the output format of HiC-Pro [pipeline](https://github.com/nservant/HiC-Pro), where the matrix file is a three column sparse format in which first two columns are interacting bins and third column is interaction frequency. Bins do not interact with each other (with score 0) are listed in the file. 
 	
 	1050	1586	1
