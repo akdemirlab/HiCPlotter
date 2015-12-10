@@ -114,14 +114,14 @@ Each file should have data from one chromosome. To split the file, you can use -
 
 ### Triplet sparse format
 
-HiCPlotter now accepts the output format of HiC-Pro [pipeline](https://github.com/nservant/HiC-Pro), where the matrix file is a three column sparse format in which first two columns are interacting bins and third column is interaction frequency. Bins do not interact with each other (with score 0) are listed in the file. 
+HiCPlotter now accepts the output format of HiC-Pro [pipeline](https://github.com/nservant/HiC-Pro), where the matrix file is a three column sparse format in which first two columns are interacting bins and third column is interaction frequency. Bins do not interact with each other (with score 0) are not listed in the file. 
 	
 	1050	1586	1
 	1050	1589	1
 	1050	1590	1 (jumps to 1612)
 	1050	1612	2
 
-An annotation file (bed format) is also required to denote the bins actual chromosomal locations. Fourth column is the bin number inside the matrix file.
+An annotation file (bed format) is also required to denote each bin's chromosomal locations. Fourth column is the bin number inside the matrix file.
 
 	chr1	20960000	20980000	1049
 	chr1	20980000	21000000	1050
