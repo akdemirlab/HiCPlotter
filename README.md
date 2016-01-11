@@ -25,6 +25,8 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
 
 # Arguments
 
+_For reading more about each parameter, please check the [manual](HiCPlotterManual.pdf)._
+
 	Required parameters:
 
     files 			(-f)		: a list of filenames to be plotted.
@@ -35,11 +37,12 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
     Optional parameters:
     
     verbose			(-v)		: print version and arguments into a file.
-    tripleColumn	(-tri)		: an integer if input file is from HiC-Pro pipeline.
+    tripleColumn	(-tri)		: a boolean if input file is from HiC-Pro pipeline.
     bedFile			(-bed)		: a file name for bin annotations, if -tri parameter is set.
     histograms		(-hist)		: a list of filenames to be plotted as histogram.
     histLabels		(-h)		: a list of labels for the histograms.
     fillHist		(-fhist)	: a list whether each histogram will be filled (1) or not (0:default).
+    histColors		(-hc)		: a list of hexadecimal numbers for histogram filling colors.
     histMax 		(-hm)		: a list of integer for maximum values of histograms.
     start			(-s)		: retain after x-th bin (0:default).
     end				(-e)		: continues until x-th bin (default: length of the matrix).
@@ -48,30 +51,32 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
     tilePlots		(-t)		: a list of filenames to be plotted as tile plots.
     tileLabels		(-tl)		: a list of labels for the tile plots.
     tileColors		(-tc)		: a list of hexadecimal numbers for coloring the tile plots.
-    tileText		(-tt)		: an integer whether text will be displayed above tiles (0:default) or not (1).
+    tileText		(-tt)		: a boolean whether text will be displayed above tiles (0:default) or not (1).
     arcPlots		(-a)		: a list of filenames to be plotted as arc plots.
     arcLabels		(-al)		: a list of labels for the arc plots.
     arcColors		(-ac)		: a list of hexadecimal numbers for coloring the arc plots.
-    highlights		(-high)		: an integer for enabling highlights on the plot (0:default), enable(1). 
+    highlights		(-high)		: a boolean for enabling highlights on the plot (0:default), enable(1). 
     highFile		(-hf)		: a file name for a bed file to highlight selected intervals.
     peakFiles 		(-peak)		: a list of filenames to be plotted on the matrix.
+    epiLogos 		(-ep)		: a filename to be plotted as Epilogos format.
+    imputed 		(-im)		: a boolean if imputed epilogos will be plotted. (default:0 for observed)
     window			(-w)		: an integer of distance to calculate insulation score.
     tadRange		(-tr)		: an integer of window to calculate local minima for TAD calls.
     fileHeader		(-fh)		: an integer for how many lines should be ignored in the matrix file (1:default).
     fileFooter		(-ff)		: an integer for how many lines should be skipped at the end of the matrix file (0:default).
     smoothNoise		(-sn)		: a floating-point number to clean noise in the data.
     heatmapColor	(-hmc)		: an integer for choosing heatmap color codes: Greys(0), Reds(1), YellowToBlue(2), YellowToRed(3-default), Hot(4), BlueToRed(5).
-    cleanNANs		(-cn)		: an integer for replacing NaNs in the matrix with zeros (1:default) or not (0).
-    plotTriangular	(-ptr)		: an integer for plotting rotated half matrix (1:default) or not (0).
-    plotTadDomains	(-ptd)		: an integer for plotting TADs identified by HiCPlotter (1) or not (0:default).
-    plotPublishedTadDomins	(-pptd)	: an integer for plotting TADs from Dixon et, al. 2012 (1:default) or not (0).
-    plotDomainsAsBars		(-ptdb)	: an integer for plotting TADs as bars (1) instead of triangles (0:default)
-    highResolution	(-hR)		: an integer whether plotting high resolution (1:default) or not (0).
-    plotInsulation	(-pi)		: an integer for plotting insulation scores (0:default) or plot (1).
-    randomBins		(-rb)		: an integer for plotting random resolution data (1:default) or not (0).
-    wholeGenome		(-wg)		: an integer for plotting whole genome interactions (1:default) or not (0).
+    cleanNANs		(-cn)		: a boolean for replacing NaNs in the matrix with zeros (1:default) or not (0).
+    plotTriangular	(-ptr)		: a boolean for plotting rotated half matrix (1:default) or not (0).
+    plotTadDomains	(-ptd)		: a boolean for plotting TADs identified by HiCPlotter (1) or not (0:default).
+    plotPublishedTadDomins	(-pptd)	: a boolean for plotting TADs from Dixon et, al. 2012 (1:default) or not (0).
+    plotDomainsAsBars		(-ptdb)	: a boolean for plotting TADs as bars (1) instead of triangles (0:default)
+    highResolution	(-hR)		: a boolean whether plotting high resolution (1:default) or not (0).
+    plotInsulation	(-pi)		: a boolean for plotting insulation scores (0:default) or plot (1).
+    randomBins		(-rb)		: a boolean for plotting random resolution data (1:default) or not (0).
+    wholeGenome		(-wg)		: a boolean for plotting whole genome interactions (1:default) or not (0).
     plotCustomDomains		(-pcd)	: a list of file names to be plotted beneath the matrix.
-    publishedTadDomainOrganism 	(-ptdo)	: an integer for plotting human (1:default) or mouse (0) TADs from Dixon et, al. 2012.
+    publishedTadDomainOrganism 	(-ptdo)	: a boolean for plotting human (1:default) or mouse (0) TADs from Dixon et, al. 2012.
     customDomainsFile			(-pcdf)	: a list of filenames to be plotted as TADs for each experiments.
 
 # Input Files
@@ -215,7 +220,7 @@ _Color code of the heatmaps can be changed with -hmc parameter_
 
 # Example cases with publicly available datasets
 
-## Visualization of ChIP-Seq and 4C data as histograms
+## Histogram Plotting
 
 _Multiple histograms for the same matrix should be seperated by comma (true for hist labels and fill histogram parameters)._
 
@@ -228,33 +233,31 @@ _Data taken from:_ 4C : [Noordermer et, al. Elife 2014](http://elifesciences.org
   <img src="examplePlots/HoxD-chr2.ofBins(1830-1880).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
-## Visualization of ChIP-Seq and RAP-Seq data as histograms
 
-_Data taken from:_ RAP-seq : [Engreitz et al. Science 2014](http://www.sciencemag.org/content/341/6147/1237973.long), Hi-C : [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517) and H3K27me3 : [Mouse ENCODE Project](http://www.mouseencode.org/)
+_Color for area under the curve fillings can be specific as a hexadecimal number with -hc parameter._
 
-_Rotated matrix can be removed with -ptr 0 parameter_
-
- 	python HiCPlotter.py -f data/HiC/Mouse/mES.chrX -n mES -r 40000 -chr chrX -o RAP -fh 0 -hist data/HiC/Mouse/GSE46918_pSM33-0hr-Xist_vs_Input.W10000_O7500.bedGraph,data/HiC/Mouse/GSE46918_pSM33-1hr-Xist_vs_Input.W10000_O7500.bedGraph,data/HiC/Mouse/GSE46918_pSM33-2hr-Xist_vs_Input.W10000_O7500.bedGraph,data/HiC/Mouse/GSE46918_pSM33-3hr-Xist_vs_Input.W10000_O7500.bedGraph,data/HiC/Mouse/GSE46918_pSM33-6hr-Xist_vs_Input.W10000_O7500.bedGraph,data/HiC/Mouse/wgEncodeLicrHistoneEsb4H3k27me3ME0C57bl6StdSig.chrX.bedGraph -hl Xist_0h,Xist_1h,Xist_2h,Xist_3h,Xist_6h,H3K27me3_0h -pi 0 -ptr 0 -fhist 0,1,1,1,1,0 -hmc 4 -sn 0
+	python HiCPlotter.py -f data/HiC/Mouse/mES.chr2 -n mES -chr chr2 -r 40000 -o HoxDc -hist data/HiC/Mouse/GSM1334415_4C_Mouse_EScells_Hoxd4_smoothed_11windows.bedGraph,data/HiC/Mouse/GSM1334412_4C_Mouse_EScells_Hoxd13_smoothed_11windows.bedGraph -hl Hoxd4-ES,Hoxd13-ES -s 1830 -e 1880 -fh 0 -pi 0 -pcd 1 -pcdf data/mES_domains_mm9.bed -fhist 1,1 -hm 2000,2000 -hc 143D52,9ACD32
 
 <figure>
-  <figcaption align="middle">**Xist spreading during initiation of X-chromosome inactivation**</figcaption>
-  <img src="examplePlots/RAP-chrX.ofBins(0-4167).40K.jpeg" alt="Example plot from HiCPlotter">
+  <figcaption align="middle">**Colored Histograms**</figcaption>
+  <img src="examplePlots/HoxD-chr2.ofBins(1830-1880).Colored.40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
-## Visualization of ChIP-Seq as histograms, ChIA-Pet as arcs and Polycomb domains as tiles
+
+## Arcs plotting
 
 _Arc plots require a bedGraph file (-a file1), color can be specied as a hexadecimal number (-ac B4B4B4) or for each arc by specified RGB colors in bedGraph file._
 
 _Data taken from:_ SMC ChIA-Pet and Polycomb Domains: [Dowen et, al. Cell 2014](http://www.sciencedirect.com/science/article/pii/S0092867414011799), Hi-C and TADs : [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517) and H3K27me3 : [Mouse ENCODE Project](http://www.mouseencode.org/)
 	
-	python s.py -f data/HiC/Mouse/mES.chr3 -n mES -chr chr3 -o Bhlhe22 -r 40000 -s 400 -e 500 -a data/HiC/Mouse/mESC_SMC_ChIPPet.bed -al SMC -hist data/HiC/Mouse/GSM747534_chr3.bedGraph,data/HiC/Mouse/wgEncodeLicrHistoneEsb4H3k27me3ME0C57bl6StdSig.chr3.bedGraph -hl CTCF,H3K27me3 -pi 0 -ptr 0 -t data/HiC/Mouse/mm9_Polycomb_domains.bed -tl Polycomb -tc 00CCFF -ac B4B4B4 -fh 0
+	python HiCPlotter.py -f data/HiC/Mouse/mES.chr3 -n mES -chr chr3 -o Bhlhe22 -r 40000 -s 400 -e 500 -a data/HiC/Mouse/mESC_SMC_ChIPPet.bed -al SMC -hist data/HiC/Mouse/GSM747534_chr3.bedGraph,data/HiC/Mouse/wgEncodeLicrHistoneEsb4H3k27me3ME0C57bl6StdSig.chr3.bedGraph -hl CTCF,H3K27me3 -pi 0 -ptr 0 -t data/HiC/Mouse/mm9_Polycomb_domains.bed -tl Polycomb -tc 00CCFF -ac B4B4B4 -fh 0
 
 <figure>
   <figcaption align="middle">**Bhlhe22 locus in mouse ES cells**</figcaption>
   <img src="examplePlots/Bhlhe22-chr3.ofBins(400-475).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
-## Visualization of 4C data as histograms and Enhancers as tiles with text
+## Tiles plotting
 
 _If bedGraph file for tile plotting contains text in 6th column, features can be plotted above tiles with -tt parameter._
 
@@ -267,6 +270,23 @@ _Data taken from:_ 4C : [Lonfat et, al. Science 2014](http://www.sciencemag.org/
   <figcaption align="middle">**Interaction profiles of Hoxa13 gene with tissue specific enhancers**</figcaption>
   <img src="examplePlots/Digit.vs.GT-chr6.ofBins(1295-1338).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
+
+## Epilogos plotting
+
+Epilogos is developed visualization and analysis of chromatin state model data in various cell types by Wouter Meuleman and Manolis Kellis. More about epilogos, [check](http://compbio.mit.edu/epilogos/#)
+
+You can download the epilogos data [from](http://egg2.wustl.edu/roadmap/data/byFileType/chromhmmSegmentations/ChmmModels/epilogos/)
+
+	python HiCPlotter.py -f data/HiC/Human/GM12878-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt -chr chr10 -fh 0 -n GM12878 -o Epilogos -r 25000 -ep qcat -hist RepliSeq.bedGraph -hl RepliSeq -fhist 1 -s 2500 -e 5000 -mm 8
+
+<figure>
+  <figcaption align="middle">**Epilogos with Replication Timing and Hi-C data**</figcaption>
+  <img src="examplePlots/Epilogos-chr10.ofBins(2500-5000).25K.jpeg" alt="Example plot from HiCPlotter">
+</figure>
+
+_Use parameter (-im) if you download the qcat file from imputed/ folder_
+ 
+_Currently color of each states for Epilogos plotting is hard-coded in HiCPlotter, therefore please use qcat files in imputed or observed folders._
 
 ## Highlighting selected loci on the plot
 
@@ -307,6 +327,22 @@ _Data taken from:_ Hi-C : [Seitan et, al. Genome Research 2014](http://genome.cs
 <figure>
   <figcaption align="middle">**T-cell whole genome interaction data in wild type and Rad21 knock-out cells**</figcaption>
   <img src="examplePlots/Tcell-WholeGenome-1400K.jpeg" alt="Example plot from HiCPlotter">
+</figure>
+
+### Whole genome plotting with triple sparse files
+
+_(-chr) parameter will be used designate to the end chromosome, such as (-chr chr11) will plot interactions starting from chr1 to chr11._ 
+
+<figure>
+  <figcaption align="middle">**hES whole genome interactions**</figcaption>
+  <img src="examplePlots/hES-WholeGenome.chrY-1000K.jpeg" alt="Example plot from HiCPlotter">
+</figure>
+
+_Please use (-chr chrY) for whole genome interaction plots._
+
+<figure>
+  <figcaption align="middle">**hES interactions from chr1 to chr11**</figcaption>
+  <img src="examplePlots/hES-WholeGenome.chr11-1000K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 ## 5C data visualization
@@ -370,8 +406,6 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
 
 	Original  :     from scipy.signal import argrelextrema (line 20)
 	Try this  :     #from scipy.signal import argrelextrema (line 20). Use HiCPlotter with the -pi 0 and -ptd 0
-
-*If you received the following error: "IOError: encoder jpeg not available", please change extensions of '.jpeg' to '.png' after line 880.
 
 *If you like to run HiCPlotter in verbose mode, please use -v parameter which will create a log file with which parameters the program ran.
 

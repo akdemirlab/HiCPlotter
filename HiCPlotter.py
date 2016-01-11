@@ -26,7 +26,7 @@ import argparse
 import bisect
 import logging
 
-version = "0.4.01"
+version = "0.5.01"
 
 def read_HiCdata(filename,header=1,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -57,10 +57,10 @@ def read_HiCdata(filename,header=1,footer=0,clean_nans=True,smooth_noise=0.5,ins
 	
 	if not randomBins and len(matrix[:,1]) != len(matrix[1,:]):
 		print len(matrix[:,1]),len(matrix[1,:])
-		print >>sys.stderr, 'unbalaced matrix('+filename+')! input should be a square matrix'
+		print >>sys.stderr, 'unbalanced matrix('+filename+')! input should be a square matrix'
 		raise SystemExit
 	
-	if plotInsulation or plotTadDomains: nums,tricks=insulation(matrix,ins_window,rel_window)
+	if plotInsulation or plotTadDomains and not randomBins: nums,tricks=insulation(matrix,ins_window,rel_window)
 	else: nums=[];tricks=[];
 	
 	if clean_nans: matrix[np.isnan(matrix)]=0
@@ -68,7 +68,7 @@ def read_HiCdata(filename,header=1,footer=0,clean_nans=True,smooth_noise=0.5,ins
 	return matrix,nums,tricks
 
 
-def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
+def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,wholeGenome,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
 	'''
     load Hi-C interaction matrix from triple-column sparse file
@@ -80,6 +80,7 @@ def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,smooth_noise=
     bedFile: a bed file for locations of bins
     startBin: starting bin - 0 zero-based
     endBin: end point for the plot
+    wholeGenome: for plotting more than one chromosome interactions. chromosome parameter will be used for until which chromosome interactions will be plotted.
     smooth_noise: variable values under will be replace with 0's to clean noise in the matrix
     ins_window: window size for scanning diagonal of the matrix for insulation scores
     rel_window: relative extrama extension size - will be extend to both directions
@@ -102,18 +103,24 @@ def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,smooth_noise=
 	
 	for line in bed.readlines():
 		tags = line.strip().split("\t")
+		if tags[0]=='chrM':continue
 		if tags[0] not in chromosomes.keys():
 			chromosomes[tags[0]]=[]
 			chromosomes[tags[0]].append(int(tags[3]))
 		else: chromosomes[tags[0]].append(int(tags[3]))
 	
-	clast = chromosomes[chromosome][-1]-1
-	start = chromosomes[chromosome][0]+startBin
-	end = chromosomes[chromosome][0]+endBin
+	if not wholeGenome:
+		clast = chromosomes[chromosome][-1]-1
+		start = chromosomes[chromosome][0]+startBin
+		end = chromosomes[chromosome][0]+endBin
 	
-	end=clast if end == chromosomes[chromosome][0] else end
-	if end > clast: end=clast
-	if start > clast: start=chromosomes[chromosome][0]
+		end=clast if end == chromosomes[chromosome][0] else end
+		if end > clast: end=clast
+		if start > clast: start=chromosomes[chromosome][0]
+	else:
+		start = 1
+		end = chromosomes[chromosome][-1]
+		clast = end
 	
 	length = end-start+1
 	
@@ -129,12 +136,13 @@ def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,smooth_noise=
 		tags = line.strip().split("\t")
 		if int(tags[0]) <= end and int(tags[0])>=start :
 			if int(tags[1]) <= end and int(tags[1])>=start :
-				mtx[int(tags[0])-start, int(tags[1])-start] = int(tags[2])
+				mtx[int(tags[0])-start, int(tags[1])-start] = int(round(float(tags[2])))
+				mtx[int(tags[1])-start, int(tags[0])-start] = int(round(float(tags[2])))
 		if int(tags[0]) > end: break
 	
 	matrix = mtx.todense()
 	
-	if plotInsulation or plotTadDomains: nums,tricks=insulation(matrix,ins_window,rel_window)
+	if plotInsulation or plotTadDomains and not wholeGenome: nums,tricks=insulation(matrix,ins_window,rel_window)
 	else: nums=[];tricks=[];
 	
 	#matrix[matrix<smooth_noise]=0
@@ -242,6 +250,53 @@ def read_peakFile(filename,resolution,chromosome): # add stopping after certain 
 		raise SystemExit
 	# color control
 	return origin_x,origin_y,radius,colors
+
+def read_epilogos(filename,resolution,chromosome,start,end): # add stopping after certain chromosome passed
+	
+	'''
+    reads epilogos file format (http://compbio.mit.edu/epilogos/)
+	# you can download epilogos files for human genome from http://egg2.wustl.edu/roadmap/data/byFileType/chromhmmSegmentations/ChmmModels/epilogos/
+    parameters:
+
+    filename: file name. format could be either "chr\tstart\tend" or "chr\tstart\tend\tvalue..."
+    resolution: bin size for the matrix
+	start: starting bin - 0 zero-based
+    end: end point for the plot
+	
+	returns:
+	x_scores = location along the given chromosome - start sites
+	y_dict = a dictionary containing enrichments of each states for a given location
+    '''
+	
+	try:
+		fone=open(filename,'r')
+	except IOError:
+		print >>sys.stderr, 'cannot open', filename
+		raise SystemExit
+	
+	x_scores=[]
+	y_dict={} 
+	start = resolution * start
+	end = resolution * end
+	
+	for line in fone.xreadlines():
+		tags = line.strip().split("\t")
+		if tags[0]==chromosome and int(tags[1])>start and int(tags[2]) < end:
+			x_scores.append(float(tags[1])/resolution)
+			cols = np.array(tags[3].split(':')[2].split(','))
+			for x in range(1,len(cols)):
+				if x % 2 == 1 and cols[x].replace('[','').replace(']','').replace(' ','') not in y_dict.keys():
+					y_dict[cols[x].replace('[','').replace(']','').replace(' ','')]=[]
+					y_dict[cols[x].replace('[','').replace(']','').replace(' ','')].append(float(cols[x-1].replace('[','').replace(']','').replace(' ','')))
+				elif x % 2 == 1 :
+					y_dict[cols[x].replace('[','').replace(']','').replace(' ','')].append(float(cols[x-1].replace('[','').replace(']','').replace(' ','')))
+					
+	if len(y_dict.keys()) ==0:
+		print >>sys.stderr, 'Epilogos File('+filename+') has some missing values'
+		raise SystemExit
+	return x_scores,y_dict
+
+
 
 def where(start,end,arr):
     """Find where the start location and end location indexes in an array"""
@@ -351,62 +406,65 @@ def insulation(matrix,w=5,tadRange=10):
 	
 	return scores, pBorders
 
-def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=1,fileFooter=1,matrixMax=0,\
-			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],window=5,tadRange=8,tripleColumn=False,bedFile='',\
-			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,\
+def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=1,fileFooter=1,matrixMax=0,histColors=[],\
+			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',\
+			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,\
 			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[]):
 	
 	'''
     plot the interaction matrix with additional datasets
 
-    Required parameters:
+ 	Required parameters:
 
-    files: a list of filenames to be plotted.
-    name: a list of labes for the experiment.
-    chr: chromosome to be plotted.
-    output: prefix for the output file.
+    files 			(-f)		: a list of filenames to be plotted.
+    name 			(-n) 		: a list of labels for the experiment.
+    chr				(-chr)		: chromosome to be plotted.
+    output			(-o)		: prefix for the output file.
     
     Optional parameters:
     
-    verbose: print version and arguments into a file.
-    tripleColumn: an integer if input file format is triple-column sparse file.
-    bedFile: if tripleColumn is activated, required for chromosome bin~positions.
-    histograms: a list of filenames to be plotted as histogram.
-    histLabels: a list of labels for the histograms.
-    fillHist: a list whether each histogram will be filled (1) or not (0:default).
-    histMax : a list of integer for maximum values of histograms.
-    start: retain after x-th bin (0:default).
-    end: continues until x-th bin (default: length of the matrix).
-    resolution: resolution of the bins (default: 100000).
-    matrixMax: an integer value for the interaction matrix heatmap scale upper-limit.
-    tilePlots: a list of filenames to be plotted as tile plots.
-    tileLabels: a list of labels for the tile plots.
-    tileColors: a list of hexadecimal numbers for coloring the tile plots.
-    tileText: an integer whether text will be displayed above tiles (0:default) or not (1).
-    arcPlots: a list of filenames to be plotted as arc plots.
-    arcLabels: a list of labels for the arc plots.
-    arcColors: a list of hexadecimal numbers for coloring the arc plots.
-    highlights: an integer for enabling highlights on the plot (0:default), enable(1). 
-    highFile: a file name for a bed file to highlight selected intervals.
-    peakFiles : a list of filenames to be plotted on the matrix.
-    window: an integer of distance to calculate insulation score.
-    tadRange: an integer of window to calculate local minima for TAD calls.
-    fileHeader: an integer for how many lines should be skipped at the beginning the matrix file (1:default).
-    fileFooter: an integer for how many lines should be skipped at the end of the matrix file (0:default).
-    smoothNoise: a floating-point number to clean noise in the data.
-    cleanNANs: an integer for replacing NaNs in the matrix with zeros (1:default) or not (0).
-    heatmapColor: an integer for choosing heatmap color codes: Greys(0), Reds(1), YellowToBlue(2), YellowToRed(3-default), Hot(4), BlueToRed(5).
-    plotTriangular: an integer for plotting rotated half matrix (1:default) or not (0).
-    plotTadDomains: an integer for plotting TADs identified by HiCPlotter (1) or not (0:default).
-    plotDomainsAsBars: an integer for plotting TADs as bars instead of triangles (1) or not (0:default).
-    plotPublishedTadDomins: an integer for plotting TADs from Dixon et, al. 2012 (1:default) or not (0).
-    highResolution: an integer whether plotting high resolution (1:default) or not (0).
-    plotInsulation: an integer for plotting insulation scores (1:default) or not (0).
-    randomBins: an integer for plotting random resolution data (1:default) or not (0).
-    wholeGenome: an integer for plotting whole genome interactions (1:default) or not (0).
-    plotCustomDomains: a list of file names to be plotted beneath the matrix.
-    publishedTadDomainOrganism : an integer for plotting human (1:default) or mouse (0) TADs from Dixon et, al. 2012.
-    customDomainsFile: a list of filenames to be plotted as TADs for each experiments.
+    verbose			(-v)		: print version and arguments into a file.
+    tripleColumn	(-tri)		: a boolean if input file is from HiC-Pro pipeline.
+    bedFile			(-bed)		: a file name for bin annotations, if -tri parameter is set.
+    histograms		(-hist)		: a list of filenames to be plotted as histogram.
+    histLabels		(-h)		: a list of labels for the histograms.
+    fillHist		(-fhist)	: a list whether each histogram will be filled (1) or not (0:default).
+    histColors		(-hc)		: a list of hexadecimal number for histogram filling colors.
+    histMax 		(-hm)		: a list of integer for maximum values of histograms.
+    start			(-s)		: retain after x-th bin (0:default).
+    end				(-e)		: continues until x-th bin (default: length of the matrix).
+    resolution		(-r)		: resolution of the bins (default: 100000).
+    matrixMax		(-mm)		: an integer value for the interaction matrix heatmap scale upper-limit.
+    tilePlots		(-t)		: a list of filenames to be plotted as tile plots.
+    tileLabels		(-tl)		: a list of labels for the tile plots.
+    tileColors		(-tc)		: a list of hexadecimal numbers for coloring the tile plots.
+    tileText		(-tt)		: a boolean whether text will be displayed above tiles (0:default) or not (1).
+    arcPlots		(-a)		: a list of filenames to be plotted as arc plots.
+    arcLabels		(-al)		: a list of labels for the arc plots.
+    arcColors		(-ac)		: a list of hexadecimal numbers for coloring the arc plots.
+    highlights		(-high)		: a boolean for enabling highlights on the plot (0:default), enable(1). 
+    highFile		(-hf)		: a file name for a bed file to highlight selected intervals.
+    peakFiles 		(-peak)		: a list of filenames to be plotted on the matrix.
+    epiLogos 		(-ep)		: a filename to be plotted as Epilogos format.
+    imputed 		(-im)		: a boolean if imputed epilogos will be plotted. (default:0 for observed)
+    window			(-w)		: an integer of distance to calculate insulation score.
+    tadRange		(-tr)		: an integer of window to calculate local minima for TAD calls.
+    fileHeader		(-fh)		: an integer for how many lines should be ignored in the matrix file (1:default).
+    fileFooter		(-ff)		: an integer for how many lines should be skipped at the end of the matrix file (0:default).
+    smoothNoise		(-sn)		: a floating-point number to clean noise in the data.
+    heatmapColor	(-hmc)		: an integer for choosing heatmap color codes: Greys(0), Reds(1), YellowToBlue(2), YellowToRed(3-default), Hot(4), BlueToRed(5).
+    cleanNANs		(-cn)		: a boolean for replacing NaNs in the matrix with zeros (1:default) or not (0).
+    plotTriangular	(-ptr)		: a boolean for plotting rotated half matrix (1:default) or not (0).
+    plotTadDomains	(-ptd)		: a boolean for plotting TADs identified by HiCPlotter (1) or not (0:default).
+    plotPublishedTadDomins	(-pptd)	: a boolean for plotting TADs from Dixon et, al. 2012 (1:default) or not (0).
+    plotDomainsAsBars		(-ptdb)	: a boolean for plotting TADs as bars (1) instead of triangles (0:default)
+    highResolution	(-hR)		: a boolean whether plotting high resolution (1:default) or not (0).
+    plotInsulation	(-pi)		: a boolean for plotting insulation scores (0:default) or plot (1).
+    randomBins		(-rb)		: a boolean for plotting random resolution data (1:default) or not (0).
+    wholeGenome		(-wg)		: a boolean for plotting whole genome interactions (1:default) or not (0).
+    plotCustomDomains		(-pcd)	: a list of file names to be plotted beneath the matrix.
+    publishedTadDomainOrganism 	(-ptdo)	: a boolean for plotting human (1:default) or mouse (0) TADs from Dixon et, al. 2012.
+    customDomainsFile			(-pcdf)	: a list of filenames to be plotted as TADs for each experiments.
 	
 	'''
 	
@@ -415,6 +473,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	if plotTriangular: numOfrows+=1 
 	if plotTadDomains: numOfrows+=1
 	if plotInsulation: numOfrows+=1
+	if epiLogos: numOfrows+=1
 	if len(histograms)>0: numOfrows+=len(histograms[0].split(','))
 	if len(tilePlots)>0: numOfrows+=len(tilePlots[0].split(','))
 	if len(arcPlots)>0: numOfrows+=len(arcPlots[0].split(','))
@@ -448,7 +507,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			if exp == 0 : mlength = len(matrix)
 			elif len(matrix) != mlength and not randomBins:
 				print len(matrix), mlength
-				print >>sys.stderr, 'unbalaced matrix size of '+files[exp]+' compared to '+files[0]+' ! matrix sizes should be equal'
+				print >>sys.stderr, 'unbalanced matrix size of '+files[exp]+' compared to '+files[0]+' ! matrix sizes should be equal'
 				raise SystemExit
 			
 			matrix=matrix[start:end,start:end]
@@ -456,7 +515,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			if bedFile == '':
 				print >>sys.stderr, 'an annotation bed file is required for triple-column sparse input.'
 				raise SystemExit
-			matrix,nums,tricks,clength=read_sparseHiCdata(files[exp],chromosome,bedFile,start,end,window,tadRange,plotInsulation,plotTadDomains,randomBins)
+			matrix,nums,tricks,clength=read_sparseHiCdata(files[exp],chromosome,bedFile,start,end,wholeGenome,window,tadRange,plotInsulation,plotTadDomains,randomBins)
 			if end > clength: end=clength
 			end=clength if end == 0 else end
 			size=end-start
@@ -504,7 +563,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			else:
 				with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),interpolation="nearest",extent=(int(start or 1) - 0.5,\
 														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
-		
+			plt.setp(ax1.get_xticklabels(), visible=False)
+			
 		if len(peakFiles) > 0:
 			origin_x,origin_y,radius,colors = read_peakFile(peakFiles[exp],resolution,chromosome)
 			for citem in range(0,len(origin_x)):
@@ -552,9 +612,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax2 = plt.subplot2grid((numOfrows, 4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
 			dst=ndimage.rotate(matrix,45,order=0,reshape=True,prefilter=False,cval=0)
 			matrix=[];
-			if not randomBins : height = 800000/resolution + 0.5
-			else: height=length/5
-			ax2.set_ylim(start+length/2-0.5,start+length/2+height+0.5) # try to get something here
+			height=length/5
+			ax2.set_ylim(start+length/2,start+length/2+height)
 			ax2.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 			ax2.set(adjustable='box-forced')
 			if heatmapColor < 5:
@@ -616,10 +675,23 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				
 				if len(fillHist) > 0 and int(fillHist[exp].split(',')[x])==1:
 					comps2=array(y_comps)
-					ax3.fill_between(x_comps, comps2,0, color='gray', interpolate=True)
-					if ymin < 0: 
-						with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2,0, comps2>0, color='gray', interpolate=True)
-						with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
+					if len(histColors)>0:
+						if histColors[exp].split(',')[x] != '':
+							ax3.fill_between(x_comps, comps2,0, color='#'+histColors[exp].split(',')[x], interpolate=True)
+							if ymin < 0: 
+								with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2,0, comps2>0, color='#'+histColors[exp].split(',')[x], interpolate=True)
+								with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
+						else:
+							ax3.fill_between(x_comps, comps2,0, color='gray', interpolate=True)
+							if ymin < 0: 
+								with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2,0, comps2>0, color='gray', interpolate=True)
+								with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
+					else:
+						ax3.fill_between(x_comps, comps2,0, color='gray', interpolate=True)
+						if ymin < 0: 
+							with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2,0, comps2>0, color='gray', interpolate=True)
+							with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
+							
 				x_comps=[];x_comps2=[];y_comps=[];colors==[];	
 				if plotTadDomains:
 					ax3.set_xticks(tricks, minor=True)
@@ -699,6 +771,36 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				rowcounter+=1
 			if numOfrows <= rowcounter and not randomBins: ax3.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
 			elif numOfrows <= rowcounter and randomBins: ax3.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
+		
+		''' Epilogos plotting '''
+		
+		if len(epiLogos)>0:
+			if imputed:
+				obs_colors={'1':'#ff0000','2':'#ff4500','3':'#ff4500','4':'#ff4500','5':'#008000','6':'#008000','7':'#008000','8':'#009600','9':'#c2e105','10':'#c2e105','11':'#c2e105','12':'#c2e105','13':'#ffc34d','14':'#ffc34d','15':'#ffc34d','16':'#ffff00','17':'#ffff00','18':'#ffff00','19':'#ffff66','20':'#66cdaa','21':'#8a91d0','22':'#e6b8b7','23':'#7030a0','24':'#808080','25':'#ffffff'} 
+			else:
+				obs_colors={'1':'#ff0000','2':'#ff4500','3':'#32cd32','4':'#008000','5':'#006400','6':'#c2e105','7':'#ffff00','8':'#66cdaa','9':'#8a91d0','10':'#cd5c5c','11':'#e9967a','12':'#bdb76b','13':'#808080','14':'#c0c0c0','15':'#ffffff'}
+			
+			ax3 = plt.subplot2grid((numOfrows, 4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
+			if exp==0: ax3.set_ylabel('Epilogos')
+			ax3.get_yaxis().set_label_coords(-0.125,0.5)
+			x_comps,y_dict = read_epilogos(epiLogos,resolution,chromosome,start,end)				
+			for state in y_dict.keys():
+				ax3.plot(x_comps,y_dict[state],color=obs_colors[state],alpha=0.75,linewidth = 0.8)
+				if imputed:
+					if state not in ['9','10','11','12','21']:
+						ax3.plot(x_comps,y_dict[state],color=obs_colors[state],alpha=0.45,linewidth = 0.8)
+					elif state =='21':
+						ax3.plot(x_comps,y_dict[state],color=obs_colors[state],alpha=0.75,linewidth = 0.8)
+			ax3.set_ylim(1,7)
+			ax3.locator_params(axis='y',tight=False, nbins=3)
+			ax3.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+			ax3.set_axis_bgcolor('black')
+			
+			rowcounter+=1
+			if numOfrows <= rowcounter and not randomBins: ax3.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
+			elif numOfrows <= rowcounter and randomBins: ax3.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
+			ax3.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+
 		
 		
 		''' Insulation Scores '''
@@ -963,23 +1065,26 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,1) 
 			ax1.set_xticklabels(ticks)
 			ax1.set_yticklabels(ticks)
-		
+	
+	if 'JPEG' in plt.gcf().canvas.get_supported_filetypes_grouped().keys() or 'Joint Photographic Experts Group' in plt.gcf().canvas.get_supported_filetypes_grouped().keys(): extension='.jpeg'
+	else : extension = '.png'
+	
 	print 'Plotting now!!'	
 	if wholeGenome:	
 		if highResolution:
-			plt.savefig(output+'-WholeGenome-'+str(resolution/1000)+'K.jpeg',dpi=200)
+			plt.savefig(output+'-WholeGenome-'+str(resolution/1000)+'K'+extension,dpi=200)
 		else:
-			plt.savefig(output+'-WholeGenome-'+str(resolution/1000)+'K.jpeg')
+			plt.savefig(output+'-WholeGenome-'+str(resolution/1000)+'K'+extension)
 	elif randomBins:
 		if highResolution:
-			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').RandomBins.jpeg',dpi=200)
+			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').RandomBins'+extension,dpi=200)
 		else:
-			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').RandomBins.jpeg')
+			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').RandomBins'+extension)
 	else:
 		if highResolution:
-			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').'+str(resolution/1000)+'K.jpeg',dpi=200)
+			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').'+str(resolution/1000)+'K'+extension,dpi=200)
 		else:
-			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').'+str(resolution/1000)+'K.jpeg')
+			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').'+str(resolution/1000)+'K'+extension)
 
 if __name__=='__main__':
 	
@@ -1000,6 +1105,7 @@ if __name__=='__main__':
 	group1.add_argument('-hl', '--histLabels', nargs='+',metavar='',default=[])
 	group1.add_argument('-hm', '--histMax', nargs='+',metavar='',default=[])
 	group1.add_argument('-fhist', '--fillHist', nargs='+',metavar='',default=[],help='(0:no, 1:yes)')
+	group1.add_argument('-hc', '--histColors', nargs='+',metavar='',default=[])
 	group1.add_argument('-t', '--tilePlots', nargs='+',metavar='',default=[])
 	group1.add_argument('-tl', '--tileLabels', nargs='+',metavar='',default=[])
 	group1.add_argument('-tc', '--tileColors', nargs='+',metavar='',default=[])
@@ -1010,6 +1116,8 @@ if __name__=='__main__':
 	group1.add_argument('-high', '--highlights',default=0,type=int,metavar='',help='default:0 - enable with 1')
 	group1.add_argument('-hf', '--highFile',default='',metavar='',help='')
 	group1.add_argument('-peak', '--peakFiles', nargs='+',metavar='',default=[])
+	group1.add_argument('-ep', '--epiLogos',metavar='',default='')
+	group1.add_argument('-im', '--imputed',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-s', '--start',type=int,default=0,metavar='',help="default: 0")
 	group1.add_argument('-e', '--end',type=int,default=0,metavar='',help="default: matrix end")
 	group1.add_argument('-r', '--resolution',type=int,default=100000,metavar='',help="default: 100000")
