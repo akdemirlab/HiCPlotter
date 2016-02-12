@@ -48,6 +48,9 @@ _For reading more about each parameter, please check the [manual](HiCPlotterManu
     end				(-e)		: continues until x-th bin (default: length of the matrix).
     resolution		(-r)		: resolution of the bins (default: 100000).
     matrixMax		(-mm)		: an integer value for the interaction matrix heatmap scale upper-limit.
+    barPlots		(-b)		: a list of filenames to be plotted as bar plots.
+    barLabels		(-bl)		: a list of labels for the bar plots.
+    barColors		(-bc)		: a list of hexadecimal numbers for coloring the bar plots.
     tilePlots		(-t)		: a list of filenames to be plotted as tile plots.
     tileLabels		(-tl)		: a list of labels for the tile plots.
     tileColors		(-tc)		: a list of hexadecimal numbers for coloring the tile plots.
