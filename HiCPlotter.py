@@ -26,7 +26,7 @@ import argparse
 import bisect
 import logging
 
-version = "0.5.01"
+version = "0.5.03"
 
 def read_HiCdata(filename,header=1,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -406,8 +406,8 @@ def insulation(matrix,w=5,tadRange=10):
 	
 	return scores, pBorders
 
-def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=1,fileFooter=1,matrixMax=0,histColors=[],\
-			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',\
+def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=1,fileFooter=1,matrixMax=0,histColors=[],barPlots=[],barLabels=[],\
+			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],\
 			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,\
 			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[]):
 	
@@ -475,6 +475,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	if plotInsulation: numOfrows+=1
 	if epiLogos: numOfrows+=1
 	if len(histograms)>0: numOfrows+=len(histograms[0].split(','))
+	if len(barPlots)>0: numOfrows+=len(barPlots[0].split(','))
 	if len(tilePlots)>0: numOfrows+=len(tilePlots[0].split(','))
 	if len(arcPlots)>0: numOfrows+=len(arcPlots[0].split(','))
 	if plotCustomDomains or plotPublishedTadDomains and not plotTadDomains: numOfrows+=1
@@ -704,6 +705,41 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				rowcounter+=1
 			if numOfrows <= rowcounter and not randomBins: ax3.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
 			elif numOfrows <= rowcounter and randomBins: ax3.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
+		
+		
+		''' Bar plotting '''
+		
+		if len(barPlots)>0: 
+			for x in range(0,len(barPlots[0].split(','))):
+	
+				ax3 = plt.subplot2grid((numOfrows, 4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
+				if exp==0: ax3.set_ylabel(barLabels[exp].split(',')[x])
+				ax3.get_yaxis().set_label_coords(-0.125,0.5)
+				x_comps,x_comps2,y_comps,colors,texts = read_bedGraph(barPlots[exp].split(',')[x],resolution,chromosome)
+				hMax = max(y_comps)
+				for item in range(0,len(x_comps)):
+					#if x_comps[item]>=start and x_comps[item]<=end:
+					if len(barColors)==0 and len(colors)==0: rect = Rectangle((x_comps[item],0.0), (x_comps2[item]-x_comps[item]), y_comps[item], color='#0099FF',alpha=y_comps[item]/hMax)
+					elif len(colors)>0: rect = Rectangle((x_comps[item],0.0), (x_comps2[item]-x_comps[item]),  y_comps[item], color=colors[item])
+					elif len(barColors)>0: rect = Rectangle((x_comps[item],0.0), (x_comps2[item]-x_comps[item]),  y_comps[item], color='#'+barColors[exp].split(',')[x],alpha=y_comps[item]/hMax)
+					ax3.add_patch(rect)
+				x_comps=[];x_comps2=[];y_comps=[];colors==[];
+				ax3.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+				ax3.set_ylim(0,hMax+hMax/10)
+				ax3.locator_params(axis='y',tight=False, nbins=4)
+				if plotTadDomains:
+					ax3.set_xticks(tricks, minor=True)
+					ax3.xaxis.grid(True,which='minor')
+				
+				if h_start > 0:
+					for item in range(0,len(h_start)):
+						ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+				
+				rowcounter+=1
+			if numOfrows <= rowcounter and not randomBins: ax3.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
+			elif numOfrows <= rowcounter and randomBins: ax3.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
+
+		
 				
 		''' Tile plotting '''
 		
@@ -1106,6 +1142,9 @@ if __name__=='__main__':
 	group1.add_argument('-hm', '--histMax', nargs='+',metavar='',default=[])
 	group1.add_argument('-fhist', '--fillHist', nargs='+',metavar='',default=[],help='(0:no, 1:yes)')
 	group1.add_argument('-hc', '--histColors', nargs='+',metavar='',default=[])
+	group1.add_argument('-b', '--barPlots', nargs='+',metavar='',default=[])
+	group1.add_argument('-bl', '--barLabels', nargs='+',metavar='',default=[])
+	group1.add_argument('-bc', '--barColors', nargs='+',metavar='',default=[])
 	group1.add_argument('-t', '--tilePlots', nargs='+',metavar='',default=[])
 	group1.add_argument('-tl', '--tileLabels', nargs='+',metavar='',default=[])
 	group1.add_argument('-tc', '--tileColors', nargs='+',metavar='',default=[])
@@ -1154,6 +1193,18 @@ if __name__=='__main__':
 		raise SystemExit
 	if len(args['histograms'])+len(args['histLabels'])+len(args['fillHist'])>0 and len(args['histLabels'])!=len(args['histograms']) and len(args['histLabels'])!=len(args['fillHist']):
 		print >>sys.stderr, 'Upps!! Please provide equal number of BedGraphs, BedGraph Labels and FillUnders (0:no, 1:yes)'
+		raise SystemExit
+	if len(args['barPlots'])>0 and len(args['barPlots'])!=len(args['files']):
+		print >>sys.stderr, 'Upps!! Please provide equal number of HiC matrix and bar plots'
+		raise SystemExit
+	if len(args['barLabels'])>0 and len(args['barLabels'])!=len(args['files']):
+		print >>sys.stderr, 'Upps!! Please provide equal number of HiC matrix and bar plot Labels'
+		raise SystemExit
+	if len(args['barPlots'])+len(args['barLabels'])>0 and len(args['barPlots'])!=len(args['barLabels']):
+		print >>sys.stderr, 'Upps!! Please provide equal number of bar plot and bar plot Labels'
+		raise SystemExit
+	if len(args['barColors'])>0 and len(args['barPlots'])!=len(args['barColors']):
+		print >>sys.stderr, 'Upps!! Please provide equal number of bar plot and bar plot colors'
 		raise SystemExit
 	if len(args['tilePlots'])>0 and len(args['tilePlots'])!=len(args['files']):
 		print >>sys.stderr, 'Upps!! Please provide equal number of HiC matrix and tile plots'
