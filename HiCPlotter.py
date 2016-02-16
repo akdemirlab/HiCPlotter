@@ -26,7 +26,7 @@ import argparse
 import bisect
 import logging
 
-version = "0.5.03"
+version = "0.5.04"
 
 def read_HiCdata(filename,header=1,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -408,7 +408,7 @@ def insulation(matrix,w=5,tadRange=10):
 
 def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=1,fileFooter=1,matrixMax=0,histColors=[],barPlots=[],barLabels=[],\
 			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],\
-			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,\
+			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],\
 			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[]):
 	
 	'''
@@ -716,9 +716,13 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				if exp==0: ax3.set_ylabel(barLabels[exp].split(',')[x])
 				ax3.get_yaxis().set_label_coords(-0.125,0.5)
 				x_comps,x_comps2,y_comps,colors,texts = read_bedGraph(barPlots[exp].split(',')[x],resolution,chromosome)
-				hMax = max(y_comps)
+				
+				if len(barMax)==0: hMax = max(y_comps)
+				else: hMax = float(barMax[exp].split(',')[x]) #need to implement length check
+				
 				for item in range(0,len(x_comps)):
 					#if x_comps[item]>=start and x_comps[item]<=end:
+					if len(barMax)>0 and y_comps[item]>float(barMax[exp].split(',')[x]): y_comps[item]=float(barMax[exp].split(',')[x])
 					if len(barColors)==0 and len(colors)==0: rect = Rectangle((x_comps[item],0.0), (x_comps2[item]-x_comps[item]), y_comps[item], color='#0099FF',alpha=y_comps[item]/hMax)
 					elif len(colors)>0: rect = Rectangle((x_comps[item],0.0), (x_comps2[item]-x_comps[item]),  y_comps[item], color=colors[item])
 					elif len(barColors)>0: rect = Rectangle((x_comps[item],0.0), (x_comps2[item]-x_comps[item]),  y_comps[item], color='#'+barColors[exp].split(',')[x],alpha=y_comps[item]/hMax)
@@ -1145,6 +1149,7 @@ if __name__=='__main__':
 	group1.add_argument('-b', '--barPlots', nargs='+',metavar='',default=[])
 	group1.add_argument('-bl', '--barLabels', nargs='+',metavar='',default=[])
 	group1.add_argument('-bc', '--barColors', nargs='+',metavar='',default=[])
+	group1.add_argument('-bm', '--barMax', nargs='+',metavar='',default=[])
 	group1.add_argument('-t', '--tilePlots', nargs='+',metavar='',default=[])
 	group1.add_argument('-tl', '--tileLabels', nargs='+',metavar='',default=[])
 	group1.add_argument('-tc', '--tileColors', nargs='+',metavar='',default=[])
