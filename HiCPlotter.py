@@ -26,7 +26,7 @@ import argparse
 import bisect
 import logging
 
-version = "0.5.04"
+version = "0.5.05"
 
 def read_HiCdata(filename,header=1,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -408,7 +408,7 @@ def insulation(matrix,w=5,tadRange=10):
 
 def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=1,fileFooter=1,matrixMax=0,histColors=[],barPlots=[],barLabels=[],\
 			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],\
-			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],\
+			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=False,\
 			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[]):
 	
 	'''
@@ -435,6 +435,10 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     end				(-e)		: continues until x-th bin (default: length of the matrix).
     resolution		(-r)		: resolution of the bins (default: 100000).
     matrixMax		(-mm)		: an integer value for the interaction matrix heatmap scale upper-limit.
+    barPlots		(-b)		: a list of filenames to be plotted as bar plots.
+    barLabels		(-bl)		: a list of labels for the bar plots.
+    barColors		(-bc)		: a list of hexadecimal numbers for coloring the bar plots.
+    barMax	 		(-bm)		: a list of integer for maximum values of bar plots.
     tilePlots		(-t)		: a list of filenames to be plotted as tile plots.
     tileLabels		(-tl)		: a list of labels for the tile plots.
     tileColors		(-tc)		: a list of hexadecimal numbers for coloring the tile plots.
@@ -447,6 +451,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     peakFiles 		(-peak)		: a list of filenames to be plotted on the matrix.
     epiLogos 		(-ep)		: a filename to be plotted as Epilogos format.
     imputed 		(-im)		: a boolean if imputed epilogos will be plotted. (default:0 for observed)
+    spine			(-spi)		: a boolean to remove top and left borders for each tracks (default:0) enable(1).
     window			(-w)		: an integer of distance to calculate insulation score.
     tadRange		(-tr)		: an integer of window to calculate local minima for TAD calls.
     fileHeader		(-fh)		: an integer for how many lines should be ignored in the matrix file (1:default).
@@ -702,6 +707,12 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 					for item in range(0,len(h_start)):
 						ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 				
+				if spine > 0:
+					ax3.spines['right'].set_visible(False)
+					ax3.spines['top'].set_visible(False)
+					ax3.xaxis.set_ticks_position('bottom')
+					ax3.yaxis.set_ticks_position('left')
+				
 				rowcounter+=1
 			if numOfrows <= rowcounter and not randomBins: ax3.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
 			elif numOfrows <= rowcounter and randomBins: ax3.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
@@ -739,6 +750,12 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 					for item in range(0,len(h_start)):
 						ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 				
+				if spine > 0:
+					ax3.spines['right'].set_visible(False)
+					ax3.spines['top'].set_visible(False)
+					ax3.xaxis.set_ticks_position('bottom')
+					ax3.yaxis.set_ticks_position('left')
+				
 				rowcounter+=1
 			if numOfrows <= rowcounter and not randomBins: ax3.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
 			elif numOfrows <= rowcounter and randomBins: ax3.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
@@ -771,6 +788,12 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				if h_start > 0:
 					for item in range(0,len(h_start)):
 						ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+				
+				if spine > 0:
+					ax3.spines['right'].set_visible(False)
+					ax3.spines['top'].set_visible(False)
+					ax3.xaxis.set_ticks_position('bottom')
+					ax3.yaxis.set_ticks_position('left')
 				
 				rowcounter+=1
 			if numOfrows <= rowcounter and not randomBins: ax3.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
@@ -808,6 +831,12 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 					for item in range(0,len(h_start)):
 						ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 				
+				if spine > 0:
+					ax3.spines['right'].set_visible(False)
+					ax3.spines['top'].set_visible(False)
+					ax3.xaxis.set_ticks_position('bottom')
+					ax3.yaxis.set_ticks_position('left')
+				
 				rowcounter+=1
 			if numOfrows <= rowcounter and not randomBins: ax3.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
 			elif numOfrows <= rowcounter and randomBins: ax3.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
@@ -835,6 +864,12 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax3.locator_params(axis='y',tight=False, nbins=3)
 			ax3.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 			ax3.set_axis_bgcolor('black')
+			
+			if spine > 0:
+				ax3.spines['right'].set_visible(False)
+				ax3.spines['top'].set_visible(False)
+				ax3.xaxis.set_ticks_position('bottom')
+				ax3.yaxis.set_ticks_position('left')
 			
 			rowcounter+=1
 			if numOfrows <= rowcounter and not randomBins: ax3.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
@@ -866,7 +901,12 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				for item in range(0,len(h_start)):
 					ax4.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 				
-			
+			if spine > 0:
+				ax4.spines['right'].set_visible(False)
+				ax4.spines['top'].set_visible(False)
+				ax4.xaxis.set_ticks_position('bottom')
+				ax4.yaxis.set_ticks_position('left')
+					
 			rowcounter+=1
 			if numOfrows <= rowcounter and not randomBins: ax4.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000)) 
 			elif numOfrows <= rowcounter and randomBins: ax4.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
@@ -952,6 +992,11 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			if not plotCustomDomains and not randomBins: ax5.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
 			elif not plotCustomDomains and randomBins: ax5.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
 			ax5.set_ylim(0,0.75)
+			if spine > 0:
+				ax5.spines['right'].set_visible(False)
+				ax5.spines['top'].set_visible(False)
+				ax5.xaxis.set_ticks_position('bottom')
+				ax5.yaxis.set_ticks_position('left')
 			rowcounter+=1
 		
 		'''TAD plotings - custom domains'''
@@ -1034,6 +1079,11 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			if not randomBins : ax5.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
 			else: ax5.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
 			ax5.set_ylim(0,0.75)
+			if spine > 0:
+				ax5.spines['right'].set_visible(False)
+				ax5.spines['top'].set_visible(False)
+				ax5.xaxis.set_ticks_position('bottom')
+				ax5.yaxis.set_ticks_position('left')
 			rowcounter+=1
 		elif plotPublishedTadDomains and not plotTadDomains:
 			ax5 = plt.subplot2grid((numOfrows,4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
@@ -1098,6 +1148,11 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			if not randomBins : ax5.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
 			else: ax5.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
 			ax5.set_ylim(0,0.75)
+			if spine > 0:
+				ax5.spines['right'].set_visible(False)
+				ax5.spines['top'].set_visible(False)
+				ax5.xaxis.set_ticks_position('bottom')
+				ax5.yaxis.set_ticks_position('left')
 			rowcounter+=1
 
 		if not randomBins:		
@@ -1161,6 +1216,7 @@ if __name__=='__main__':
 	group1.add_argument('-hf', '--highFile',default='',metavar='',help='')
 	group1.add_argument('-peak', '--peakFiles', nargs='+',metavar='',default=[])
 	group1.add_argument('-ep', '--epiLogos',metavar='',default='')
+	group1.add_argument('-spi', '--spine',metavar='',type=int,default=False,help="default: 0 - enable with 1")
 	group1.add_argument('-im', '--imputed',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-s', '--start',type=int,default=0,metavar='',help="default: 0")
 	group1.add_argument('-e', '--end',type=int,default=0,metavar='',help="default: matrix end")
