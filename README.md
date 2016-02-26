@@ -14,7 +14,7 @@ Python 2.7.*
 
 [Numpy, Scipy, Matplotlib](http://www.scipy.org/).
 
-* Please note: scipy, numpy and matplotlib modules should be installed and updated to current version. Following versions of numpy (1.9.0, 1.9.2), scipy(0.14.0, 0.15.1) and matplotlib(1.3.1, 1.4.3) have been tested successfully.
+* Please note: scipy, numpy and matplotlib modules should be installed and updated to current version. Following versions of numpy (1.9.0, 1.9.2, 1.10.4), scipy(0.14.0, 0.15.1, 0.17.0) and matplotlib(1.3.1, 1.4.3, 1.5.1) have been tested successfully.
 * If you receive error(s) related to one or more of these modules, check this [solution](https://github.com/kcakdemir/HiCPlotter/issues/1) and/or check versions of python and required modules.
 * If you receive an error about jpeg encoder, please check Tips section below.
 
@@ -260,7 +260,7 @@ _To remove frames for each track, use --spine 1 parameter._
 
 _Gene Expression data taken from:_ [Plasschaert et, al. NAR 2014](http://www.ncbi.nlm.nih.gov/pubmed/24121688)
 
-_Color can be specied as a hexadecimal number (-bc B4B4B4) or for each arc by specified RGB colors in bedGraph file._
+_Color can be specied as a hexadecimal number (-bc 9ACD32) or for each arc by specified RGB colors in bedGraph file._
 
 	python HiCPlotter.py -f data/HiC/Mouse/mES.chr6 -n mES -chr chr6 -r 40000 -o HoxDb -b data/HiC/Mouse/GSE39522_rnaseq_gene_expression.bedGraph -bl GeneExpression -s 2900 -e 3075 -fh 0 -pi 0 -bc 9ACD32 -bm 500 -mm 8 -spi 1
 
