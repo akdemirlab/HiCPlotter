@@ -16,7 +16,6 @@ Python 2.7.*
 
 * Please note: scipy, numpy and matplotlib modules should be installed and updated to current version. Following versions of numpy (1.9.0, 1.9.2, 1.10.4), scipy(0.14.0, 0.15.1, 0.17.0) and matplotlib(1.3.1, 1.4.3, 1.5.1) have been tested successfully.
 * If you receive error(s) related to one or more of these modules, check this [solution](https://github.com/kcakdemir/HiCPlotter/issues/1) and/or check versions of python and required modules.
-* If you receive an error about jpeg encoder, please check Tips section below.
 
 _HiCPlotter is tested on Mac OS (Mountain Lion and Yosemite) and Linux (RedHat 4.1.2-44 and 5.5-Final) systems._
 
@@ -247,7 +246,7 @@ _Color for area under the curve fillings can be specific as a hexadecimal number
   <img src="examplePlots/HoxD-chr2.ofBins(1830-1880).Colored.40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
-_To remove frames for each track, use --spine 1 parameter._
+_To remove frames for each track, use --spine (-spi) 1 parameter._
 
 	python HiCPlotter.py -f data/HiC/Mouse/mES.chr2 -n mES -chr chr2 -r 40000 -o HoxDcs -hist data/HiC/Mouse/GSM1334415_4C_Mouse_EScells_Hoxd4_smoothed_11windows.bedGraph,data/HiC/Mouse/GSM1334412_4C_Mouse_EScells_Hoxd13_smoothed_11windows.bedGraph -hl Hoxd4-ES,Hoxd13-ES -s 1830 -e 1880 -fh 0 -pi 0 -pcd 1 -pcdf data/mES_domains_mm9.bed -fhist 1,1 -hm 2000,2000 -hc 143D52,9ACD32 -spi 1
 
