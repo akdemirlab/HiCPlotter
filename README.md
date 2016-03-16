@@ -1,8 +1,8 @@
-#HiCPlotter: Integrating HiC data with genomic datasets
+#HiCPlotter: Visualization of Hi-C data with genomic datasets
 
 # About HiCPlotter
 
-HiCPlotter is a Python data visualization tool for integrating different data types with interaction matrixes. For more on 5C or HiC, please check:  <a class="reference external" href="http://www.nature.com/nrg/journal/v14/n6/full/nrg3454.html"> Dekker et al. 2013</a>.
+HiCPlotter is a Python data visualization tool for integrating different data types with interaction matrixes. For more on 5C or Hi-C, please check:  <a class="reference external" href="http://www.nature.com/nrg/journal/v14/n6/full/nrg3454.html"> Dekker et al. 2013</a>.
 
 If you use HiCPlotter in your studies, please cite our publication in Genome Biology (http://www.genomebiology.com/2015/16/1/198)
 
