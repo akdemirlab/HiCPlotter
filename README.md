@@ -6,7 +6,7 @@ HiCPlotter is a Python data visualization tool for integrating different data ty
 
 If you use HiCPlotter in your studies, please cite our publication in Genome Biology (http://www.genomebiology.com/2015/16/1/198)
 
-_HiCPlotter is designed by Kadir Caner Akdemir (kcakedemir at mdanderson dot org / find me on [Twitter](https://twitter.com/canerakdemir)) in Lynda Chin's Lab at the University of Texas MD Anderson Cancer Center, Houston, TX, USA._
+_HiCPlotter is designed by Kadir Caner Akdemir (kcakedemir at mdanderson dot org / find me on [Twitter](https://twitter.com/kcakdemir)) in Lynda Chin's Lab at the University of Texas MD Anderson Cancer Center, Houston, TX, USA._
 
 # Requirements
 
