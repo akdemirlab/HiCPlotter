@@ -14,6 +14,9 @@ def bedToSparse():
 	creates:
 	bed file for the bins
 	matrix file formatted as triple-sparse matrix (HiC-Pro output)
+    
+    Special thanks to Charles Dietz for testing this script!
+    
     '''
 
 	
