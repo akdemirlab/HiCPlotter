@@ -6,7 +6,7 @@ HiCPlotter is a Python data visualization tool for integrating different data ty
 
 If you use HiCPlotter in your studies, please cite our publication in Genome Biology (http://www.genomebiology.com/2015/16/1/198)
 
-_HiCPlotter is designed by Kadir Caner Akdemir (kcakedemir at mdanderson dot org / find me on [Twitter](https://twitter.com/kcakdemir)) in Lynda Chin's Lab at the University of Texas MD Anderson Cancer Center, Houston, TX, USA._
+_HiCPlotter is designed by Kadir Akdemir (kcakedemir at mdanderson dot org / find me on [Twitter](https://twitter.com/kcakdemir)) while in Lynda Chin's Lab at the University of Texas MD Anderson Cancer Center, Houston, TX, USA._
 
 # Requirements
 
@@ -21,6 +21,22 @@ _HiCPlotter is tested on Mac OS (Mountain Lion and Yosemite) and Linux (RedHat 4
 
 _HiCPlotter is purposefully designed with the least amount of dependencies to make it easily applicable._
 
+
+# Contents
+
+1. [Input Files](#inputfiles)
+2. [Basic Usage](#usage)
+3. [Tracks](#tracks)
+   1. [Histograms](#histograms)
+   2. [Bar plots](#barplots)
+   3. [Arcs](#arcs)
+   4. [Tile plots](#tileplots)
+   5. [Epilogos plotting](#epilogos)
+   6. [Domains](#domains)
+4. [Highlights](#highlights)
+5. [Annotation](#annotation)
+6. [Whole Genome Plots](#wholegenome)
+7. [5C Plots](#5c)
 
 # Arguments
 
@@ -82,7 +98,7 @@ _For reading more about each parameter, please check the [manual](HiCPlotterManu
     publishedTadDomainOrganism 	(-ptdo)	: a boolean for plotting human (1:default) or mouse (0) TADs from Dixon et, al. 2012.
     customDomainsFile			(-pcdf)	: a list of filenames to be plotted as TADs for each experiments.
 
-# Input Files
+## Input Files <a name="inputfiles"></a>
 
 ## Hi-C/5C matrix data
 
@@ -166,7 +182,7 @@ For annotating the interaction matrix, HiCPlotter requires the following format.
 	chr10	101600000	101610000	chr10	101800000	101810000	0,255,255
 	chr10	102100000	102105000	chr10	102190000	102195000	0,255,255
 
-# Usage
+# Usage <a name="usage"></a>
 
 	python HiCPlotter.py -f file1 file2 -n name1 name2 -chr chrX -o output
 
@@ -221,9 +237,9 @@ _Color code of the heatmaps can be changed with -hmc parameter_
 </figure>
 
 
-# Example cases with publicly available datasets
+# Adding Tracks <a name="tracks"></a>
 
-## Histogram Plotting
+## Histogram Plotting <a name="histograms"></a>
 
 _Multiple histograms for the same matrix should be seperated by comma (true for hist labels and fill histogram parameters)._
 
@@ -255,7 +271,7 @@ _To remove frames for each track, use --spine (-spi) 1 parameter._
   <img src="examplePlots/HoxD-chr2.ofBins(1830-1880).Frameless.40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
-## Bar Plots
+## Bar Plots <a name="barplots"></a>
 
 _Gene Expression data taken from:_ [Plasschaert et, al. NAR 2014](http://www.ncbi.nlm.nih.gov/pubmed/24121688)
 
@@ -269,7 +285,7 @@ _Color can be specied as a hexadecimal number (-bc 9ACD32) or for each arc by sp
 </figure>
 
 
-## Arcs plotting
+## Arcs plotting <a name="arcs"></a>
 
 _Arc plots require a bedGraph file (-a file1), color can be specied as a hexadecimal number (-ac B4B4B4) or for each arc by specified RGB colors in bedGraph file._
 
@@ -282,7 +298,7 @@ _Data taken from:_ SMC ChIA-Pet and Polycomb Domains: [Dowen et, al. Cell 2014](
   <img src="examplePlots/Bhlhe22-chr3.ofBins(400-475).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
-## Tiles plotting
+## Tiles plotting <a name="tileplots"></a>
 
 _If bedGraph file for tile plotting contains text in 6th column, features can be plotted above tiles with -tt parameter._
 
@@ -296,7 +312,7 @@ _Data taken from:_ 4C : [Lonfat et, al. Science 2014](http://www.sciencemag.org/
   <img src="examplePlots/Digit.vs.GT-chr6.ofBins(1295-1338).40K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
-## Epilogos plotting
+## Epilogos plotting <a name="epilogos"></a>
 
 Epilogos is developed visualization and analysis of chromatin state model data in various cell types by Wouter Meuleman and Manolis Kellis. More about epilogos, [check](http://compbio.mit.edu/epilogos/#)
 
@@ -313,7 +329,7 @@ _Use parameter (-im) if you download the qcat file from imputed/ folder_
  
 _Currently color of each states for Epilogos plotting is hard-coded in HiCPlotter, therefore please use qcat files in imputed or observed folders._
 
-## Highlighting selected loci on the plot
+## Highlighting selected loci on the plot <a name="highlights"></a>
 
 _Highlights on the plots can be drawn with -high 1 and passing a bed file name to -hf parameter._
 
@@ -327,7 +343,7 @@ _Data taken from:_ Hi-C and Arrow domains  : [Rao et, al. Cell 2014](http://www.
   <img src="examplePlots/High-chr10.ofBins(3000-3500).25K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
-## Annotating the interaction matrix
+## Annotating the interaction matrix <a name="annotation"></a>
 
 _Annotations on the matrix can be drawn with -peak parameter.Input file should contain at least six columns._
 
@@ -341,7 +357,7 @@ _Data taken from:_ Hi-C and HiCCUP peaks  : [Rao et, al. Cell 2014](http://www.c
   <img src="examplePlots/Loops-chr10.ofBins(3600-3675).25K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
-## Whole Genome Plotting
+## Whole Genome Plotting <a name="wholegenome"></a>
 
 _Whole genome plotting can be activated by -wg parameter (Please note: currently only matrixes can be plotted with this option)._
 
@@ -370,7 +386,7 @@ _Please use (-chr chrY) for whole genome interaction plots._
   <img src="examplePlots/hES-WholeGenome.chr11-1000K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
-## 5C data visualization
+## 5C data visualization <a name="5c"></a>
 
 _Random binned 5C data plotting can be activated by -rb parameter (Please note: currently only matrixes and triangular plots can be plotted with this option)._
 
@@ -383,7 +399,7 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
   <img src="examplePlots/5C-chrX.ofBins(0-300).RandomBins.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
-# Figures
+# Reproducing the figures in our Genome Biology article
 
 ## Basic usage
 
