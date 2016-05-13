@@ -78,6 +78,7 @@ _For reading more about each parameter, please check the [manual](HiCPlotterManu
     highFile		(-hf)		: a file name for a bed file to highlight selected intervals.
     peakFiles 		(-peak)		: a list of filenames to be plotted on the matrix.
     compare			(-c)		: a boolean to log2 compare first two matrices (default:0) enable(1).
+    spine			(-spi)		: a boolean to remove top and left borders for each tracks (default:0) enable(1).
     epiLogos 		(-ep)		: a filename to be plotted as Epilogos format.
     oExtension 		(-ext)		: an extension name for the output file format - default jpeg.
     imputed 		(-im)		: a boolean if imputed epilogos will be plotted. (default:0 for observed)
