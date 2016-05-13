@@ -26,7 +26,7 @@ import argparse
 import bisect
 import logging
 
-version = "0.5.05"
+version = "0.6.05.compare"
 
 def read_HiCdata(filename,header=1,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -406,10 +406,10 @@ def insulation(matrix,w=5,tadRange=10):
 	
 	return scores, pBorders
 
-def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=1,fileFooter=1,matrixMax=0,histColors=[],barPlots=[],barLabels=[],\
+def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],\
 			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],\
 			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=False,\
-			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[]):
+			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,domColors=[],oExtension=''):
 	
 	'''
     plot the interaction matrix with additional datasets
@@ -450,16 +450,19 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     highFile		(-hf)		: a file name for a bed file to highlight selected intervals.
     peakFiles 		(-peak)		: a list of filenames to be plotted on the matrix.
     epiLogos 		(-ep)		: a filename to be plotted as Epilogos format.
+    oExtension 		(-ext)		: an extension name for the output file format - default jpeg.
     imputed 		(-im)		: a boolean if imputed epilogos will be plotted. (default:0 for observed)
     spine			(-spi)		: a boolean to remove top and left borders for each tracks (default:0) enable(1).
+    compare			(-c)		: a boolean to log2 compare first two matrices (default:0) enable(1).
     window			(-w)		: an integer of distance to calculate insulation score.
     tadRange		(-tr)		: an integer of window to calculate local minima for TAD calls.
-    fileHeader		(-fh)		: an integer for how many lines should be ignored in the matrix file (1:default).
+    fileHeader		(-fh)		: an integer for how many lines should be ignored in the matrix file (0:default).
     fileFooter		(-ff)		: an integer for how many lines should be skipped at the end of the matrix file (0:default).
     smoothNoise		(-sn)		: a floating-point number to clean noise in the data.
     heatmapColor	(-hmc)		: an integer for choosing heatmap color codes: Greys(0), Reds(1), YellowToBlue(2), YellowToRed(3-default), Hot(4), BlueToRed(5).
     cleanNANs		(-cn)		: a boolean for replacing NaNs in the matrix with zeros (1:default) or not (0).
     plotTriangular	(-ptr)		: a boolean for plotting rotated half matrix (1:default) or not (0).
+    domColors		(-dc)		: a list of hexadecimal numbers for coloring the domain plots.
     plotTadDomains	(-ptd)		: a boolean for plotting TADs identified by HiCPlotter (1) or not (0:default).
     plotPublishedTadDomins	(-pptd)	: a boolean for plotting TADs from Dixon et, al. 2012 (1:default) or not (0).
     plotDomainsAsBars		(-ptdb)	: a boolean for plotting TADs as bars (1) instead of triangles (0:default)
@@ -485,6 +488,9 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	if len(arcPlots)>0: numOfrows+=len(arcPlots[0].split(','))
 	if plotCustomDomains or plotPublishedTadDomains and not plotTadDomains: numOfrows+=1
 	
+	if compare: numOfcols+=1; files.append('pseudo'); matrix1=[];matrix2=[]
+	
+	
 	fig=plt.figure(figsize=(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5), facecolor='w', edgecolor='w')
 	fig.set_size_inches(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5)
 	fig.subplots_adjust(hspace=0.48,wspace=1.0)
@@ -502,7 +508,9 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	if highlights:
 		h_start,h_end,_,_,_ = read_bedGraph(highFile,resolution,chromosome)
 	
-	for exp in range(0,len(files)):
+	rlength = len(files)-1 if compare else len(files)
+	
+	for exp in range(0,rlength):
 		rowcounter=0
 		
 		if not tripleColumn:
@@ -541,7 +549,10 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			elif wholeGenome: ax1.set_ylabel('')
 			cmatrix = log2(pow(2, ceil(log2(max(matrix))/log2(2))))
 			if matrixMax !=0: cmatrix = matrixMax
-			
+			if compare: matrix1=matrix
+		
+		if exp==1 and compare: matrix2=matrix
+		 
 		ax1.set_ylim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 		ax1.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 			
@@ -918,12 +929,16 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax5 = plt.subplot2grid((numOfrows,4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
 			
 			for item in range(0,len(tricks)-1):
+				tcolor='darkkhaki'
+				if len(colors)>0: tcolor=colors[item]
+				elif len(domColors)>0: tcolor='#'+domColors[exp]
+						
 				if plotDomainsAsBars:
-					if not plotPublishedTadDomains: p = Rectangle((tricks[item],0.2), (tricks[item+1]-tricks[item]), 0.25, color='darkkhaki',alpha=0.75)
-					else: p = Rectangle((tricks[item],0.1), (tricks[item+1]-tricks[item]), 0.15, color='darkkhaki',alpha=0.75)
+					if not plotPublishedTadDomains: p = Rectangle((tricks[item],0.2), (tricks[item+1]-tricks[item]), 0.25, color=tcolor,alpha=0.75)
+					else: p = Rectangle((tricks[item],0.1), (tricks[item+1]-tricks[item]), 0.15, color=tcolor,alpha=0.75)
 				else:
 					pts= np.array([[tricks[item],0],[tricks[item+1],0],[floor((tricks[item]+tricks[item+1])/2),0.75]])
-					p = Polygon(pts, closed=True,color='darkkhaki',alpha=max(nums[tricks[item]:tricks[item+1]])/max(nums))
+					p = Polygon(pts, closed=True,color=tcolor,alpha=max(nums[tricks[item]:tricks[item+1]])/max(nums))
 				if sum(nums[slice(tricks[item],tricks[item+1])]) > np.percentile(np.array(nums),75):
 					ax5.add_patch(p)
 
@@ -1006,16 +1021,20 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax5 = plt.subplot2grid((numOfrows,4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
 			
 			for item in range(0,len(x_comps)):
+				tcolor='darkkhaki'
+				if len(colors)>0: tcolor=colors[item]
+				elif len(domColors)>0: tcolor='#'+domColors[exp]
+				
 				if plotDomainsAsBars:
-					if not plotPublishedTadDomains: p = Rectangle((x_comps[item],0.2), (x_comps2[item]-x_comps[item]), 0.25, color='darkkhaki',alpha=0.75)
-					else: p = Rectangle((x_comps[item],0.1), (x_comps2[item]-x_comps[item]), 0.15, color='darkkhaki',alpha=0.75)
+					if not plotPublishedTadDomains: p = Rectangle((x_comps[item],0.2), (x_comps2[item]-x_comps[item]), 0.25, color=tcolor,alpha=0.75)
+					else: p = Rectangle((x_comps[item],0.1), (x_comps2[item]-x_comps[item]), 0.15, color=tcolor,alpha=0.75)
 				else:
 					pts= np.array([[x_comps[item],0],[x_comps2[item],0],[floor((x_comps[item]+x_comps2[item])/2),0.75]])
-					p = Polygon(pts, closed=True,color='darkkhaki',alpha=0.85)
+					p = Polygon(pts, closed=True,color=tcolor,alpha=0.85)
 				ax5.add_patch(p)
 			
 			if plotPublishedTadDomains:
-				## adding TAD domain predictions from Dixon et al. Nature 2009
+				## adding TAD domain predictions from Dixon et al. Nature 2009 - genome assemblies hg19,mm9
 				if publishedTadDomainOrganism:
 					fone=open('data/IMR90_domains_hg19.bed','r')
 					for line in fone.xreadlines():
@@ -1155,13 +1174,76 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				ax5.yaxis.set_ticks_position('left')
 			rowcounter+=1
 
-		if not randomBins:		
+		if not randomBins:
 			ticks= ax1.get_xticks().tolist()
-			for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,1) 
+			if resolution*(end-start)<=500000: 
+				for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,3)
+			elif resolution*(end-start)<=1500000:
+				for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,2)
+			else: 
+				for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,1) 
+			ax1.set_xticklabels(ticks)
+			ax1.set_yticklabels(ticks)
+
+	
+	
+	if compare:
+		matrix1[(matrix1>=0) & (matrix1<=2)]=1
+		matrix2[(matrix2>=0) & (matrix2<=2)]=1
+		matrix=matrix1/matrix2
+		#matrix[np.logical_and(matrix>=0.5, matrix<=1)]=1
+		ax1 = plt.subplot2grid((numOfrows, 4*len(files)), (0, (exp+1)*4), rowspan=4,colspan=4)
+		with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=plt.get_cmap("bwr"),origin="lower",interpolation="nearest",extent=(int(start or 1) - 0.5,\
+														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
+		
+		ax1.set_ylim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+		ax1.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+		ax1.set_title(('log2(%s / %s)') % (names[0],names[1]))
+		if len(peakFiles) > 0:
+			origin_x,origin_y,radius,colors = read_peakFile(peakFiles[exp],resolution,chromosome)
+			for citem in range(0,len(origin_x)):
+				if len(colors)==0: circle = Circle((origin_x[citem], origin_y[citem]), radius[citem], facecolor='none', edgecolor='black', linewidth=1, alpha=0.85)
+				else: circle = Circle((origin_x[citem], origin_y[citem]), radius[citem], facecolor='none', edgecolor=colors[citem], linewidth=3, alpha=0.85)
+				ax1.add_patch(circle)
+				
+		divider = make_axes_locatable(ax1)
+		img.set_clim([-4,4])
+		
+				
+		if wholeGenome : plt.setp(ax1.get_yticklabels(), visible=False)
+		ax1.get_yaxis().set_label_coords(-0.125,0.5) 
+		if plotTadDomains:
+			ax1.set_xticks(tricks, minor=True)
+			ax1.xaxis.grid(True,which='minor',linewidth=2)
+		
+		if h_start > 0:
+			for item in range(0,len(h_start)):
+				ax1.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+		
+		ax1.get_xaxis().set_label_coords(0.5,-0.125)
+		if numOfrows == 4:
+			cax = divider.append_axes("bottom", size="2.5%", pad=0.9)
+			cbar = plt.colorbar(img, cax=cax, ticks=MultipleLocator(2.0), format="%.1f",orientation='horizontal',extendfrac='auto',spacing='uniform')
+			plt.setp(ax1.get_xticklabels(), visible=True)
+			ax1.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))	
+		else:
+			cax = divider.append_axes("bottom", size="2.5%", pad=0.1)
+			cbar = plt.colorbar(img, cax=cax, ticks=MultipleLocator(2.0), format="%.1f",orientation='horizontal',extendfrac='auto',spacing='uniform')
+			plt.setp(ax1.get_xticklabels(), visible=False)
+		
+		if not randomBins:
+			ticks= ax1.get_xticks().tolist()
+			if resolution*(end-start)<=500000: 
+				for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,3)
+			elif resolution*(end-start)<=1500000:
+				for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,2)
+			else: 
+				for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,1) 
 			ax1.set_xticklabels(ticks)
 			ax1.set_yticklabels(ticks)
 	
-	if 'JPEG' in plt.gcf().canvas.get_supported_filetypes_grouped().keys() or 'Joint Photographic Experts Group' in plt.gcf().canvas.get_supported_filetypes_grouped().keys(): extension='.jpeg'
+	if len(oExtension) > 0 and oExtension in plt.gcf().canvas.get_supported_filetypes().keys(): extension='.'+oExtension
+	elif 'JPEG' in plt.gcf().canvas.get_supported_filetypes_grouped().keys() or 'Joint Photographic Experts Group' in plt.gcf().canvas.get_supported_filetypes_grouped().keys(): extension='.jpeg'
 	else : extension = '.png'
 	
 	print 'Plotting now!!'	
@@ -1216,6 +1298,7 @@ if __name__=='__main__':
 	group1.add_argument('-hf', '--highFile',default='',metavar='',help='')
 	group1.add_argument('-peak', '--peakFiles', nargs='+',metavar='',default=[])
 	group1.add_argument('-ep', '--epiLogos',metavar='',default='')
+	group1.add_argument('-ext', '--oExtension',default='',metavar='')
 	group1.add_argument('-spi', '--spine',metavar='',type=int,default=False,help="default: 0 - enable with 1")
 	group1.add_argument('-im', '--imputed',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-s', '--start',type=int,default=0,metavar='',help="default: 0")
@@ -1224,15 +1307,17 @@ if __name__=='__main__':
 	group1.add_argument('-rb', '--randomBins',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-wg', '--wholeGenome',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-w', '--window',type=int,default=5,metavar='',help="default: 5")
-	group1.add_argument('-fh', '--fileHeader',type=int,default=1,metavar='',help="default: 1")
+	group1.add_argument('-fh', '--fileHeader',type=int,default=0,metavar='',help="default: 0")
 	group1.add_argument('-ff', '--fileFooter',type=int,default=0,metavar='',help="default: 0")
 	group1.add_argument('-tr', '--tadRange',type=int,default=8,metavar='',help="default: 8")
 	group1.add_argument('-hmc', '--heatmapColor',type=int,default=3,metavar='',help="Colors for heatmap: Greys(0), Reds(1), YellowToBlue(2), YellowToRed(3-default), Hot(4), BlueToRed(5)")
 	group1.add_argument('-sn', '--smoothNoise',type=float,default=0.5,metavar='',help="default: 0.5")
 	group1.add_argument('-mm', '--matrixMax',type=int,default=10,metavar='',help="default: 0")
+	group1.add_argument('-c', '--compare',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-cn', '--cleanNANs',type=int,default=True,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-hR', '--highResolution',type=int,default=True,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-pi', '--plotInsulation',type=int,default=False,metavar='',help="default: 0 - enable with 1")
+	group1.add_argument('-dc', '--domColors', nargs='+',metavar='',default=[])
 	group1.add_argument('-ptr', '--plotTriangular',type=int,default=False,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-ptd', '--plotTadDomains',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-pcd', '--plotCustomDomains',type=int,default=False,metavar='',help="default: 0 - enable with 1")

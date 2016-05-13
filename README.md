@@ -77,7 +77,9 @@ _For reading more about each parameter, please check the [manual](HiCPlotterManu
     highlights		(-high)		: a boolean for enabling highlights on the plot (0:default), enable(1). 
     highFile		(-hf)		: a file name for a bed file to highlight selected intervals.
     peakFiles 		(-peak)		: a list of filenames to be plotted on the matrix.
+    compare			(-c)		: a boolean to log2 compare first two matrices (default:0) enable(1).
     epiLogos 		(-ep)		: a filename to be plotted as Epilogos format.
+    oExtension 		(-ext)		: an extension name for the output file format - default jpeg.
     imputed 		(-im)		: a boolean if imputed epilogos will be plotted. (default:0 for observed)
     window			(-w)		: an integer of distance to calculate insulation score.
     tadRange		(-tr)		: an integer of window to calculate local minima for TAD calls.
@@ -95,6 +97,7 @@ _For reading more about each parameter, please check the [manual](HiCPlotterManu
     randomBins		(-rb)		: a boolean for plotting random resolution data (1:default) or not (0).
     wholeGenome		(-wg)		: a boolean for plotting whole genome interactions (1:default) or not (0).
     plotCustomDomains		(-pcd)	: a list of file names to be plotted beneath the matrix.
+    domColors		(-dc)		: a list of hexadecimal numbers for coloring the domain plots.
     publishedTadDomainOrganism 	(-ptdo)	: a boolean for plotting human (1:default) or mouse (0) TADs from Dixon et, al. 2012.
     customDomainsFile			(-pcdf)	: a list of filenames to be plotted as TADs for each experiments.
 
