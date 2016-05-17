@@ -408,7 +408,7 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
 
 _Hi-C matrices can be compared by using -c parameter, which will generate log2 comparison matrix for the first two matrices._
 	
-	python HiCPlotter.py -f data/HiC/Human/chr10_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/chr10_25kb.RAWobserved_KRnormalizedMatrix.txt -chr chr10 -n HUVEC IMR90 -o comparison -s 4850 -e 5400 -mm 8 -r 25000 -c 1 -t data/HiC/Human/HUVEC_18_core_K27ac_dense2.bed data/HiC/Human/IMR90_18_core_K27ac_dense2.bed -tl States a -spi 1 -hist data/HiC/Human/wgEncodeUwRepliSeqHuvecWaveSignalRep1.bedGraph data/HiC/Human/wgEncodeUwRepliSeqImr90WaveSignalRep1.bedGraph -hl RepliSeq a -fhist 1 1
+	python HiCPlotter.py -f data/HiC/Human/HUVEC-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/IMR90-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt -chr chr10 -n HUVEC IMR90 -o comparison -s 4850 -e 5400 -mm 8 -r 25000 -c 1 -t data/HiC/Human/HUVEC_18_core_K27ac_dense2.bed data/HiC/Human/IMR90_18_core_K27ac_dense2.bed -tl States a -spi 1 -hist data/HiC/Human/wgEncodeUwRepliSeqHuvecWaveSignalRep1.bedGraph data/HiC/Human/wgEncodeUwRepliSeqImr90WaveSignalRep1.bedGraph -hl RepliSeq a -fhist 1 1
 
 <figure>
   <figcaption align="middle">**Comparing HUVEC and IMR90 cell lines**</figcaption>
