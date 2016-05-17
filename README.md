@@ -37,6 +37,7 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
 5. [Annotation](#annotation)
 6. [Whole Genome Plots](#wholegenome)
 7. [5C Plots](#5c)
+8. [Matrix Comparison](#Comparison)
 
 # Arguments
 
@@ -403,6 +404,17 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
   <img src="examplePlots/5C-chrX.ofBins(0-300).RandomBins.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
+## Comparing Hi-C matrices <a name="Comparison"></a>
+
+_Hi-C matrices can be compared by using -c parameter, which will generate log2 comparison matrix for the first two matrices._
+	
+	python HiCPlotter.py -f data/HiC/Human/chr10_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/chr10_25kb.RAWobserved_KRnormalizedMatrix.txt -chr chr10 -n HUVEC IMR90 -o comparison -s 4850 -e 5400 -mm 8 -r 25000 -c 1 -t data/HiC/Human/HUVEC_18_core_K27ac_dense2.bed data/HiC/Human/IMR90_18_core_K27ac_dense2.bed -tl States a -spi 1 -hist data/HiC/Human/wgEncodeUwRepliSeqHuvecWaveSignalRep1.bedGraph data/HiC/Human/wgEncodeUwRepliSeqImr90WaveSignalRep1.bedGraph -hl RepliSeq a -fhist 1 1
+
+<figure>
+  <figcaption align="middle">**Comparing HUVEC and IMR90 cell lines**</figcaption>
+  <img src="examplePlots/comparison-chr10.ofBins(4850-5400).25K.jpeg" alt="Example plot from HiCPlotter">
+</figure>
+
 # Reproducing the figures in our Genome Biology article
 
 ## Basic usage
@@ -486,7 +498,7 @@ THE SOFTWARE.
 
 # Acknowledgements
 
-Thanks to Lynda Chin for her leadership, management and support.
+Thanks to Lynda Chin and Andy Futreal for their leadership, management and support.
 
 Thanks to Zeynep Coban-Akdemir, Ian Watson, Denise Spring, Jason Ernst, Tony Gutschner, Kunal Rai and Samir Amin for their insightful comments.
 
