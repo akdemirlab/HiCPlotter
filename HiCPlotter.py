@@ -26,9 +26,9 @@ import argparse
 import bisect
 import logging
 
-version = "0.6.05.compare"
+version = "0.6.1.compare"
 
-def read_HiCdata(filename,header=1,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
+def read_HiCdata(filename,header=0,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
 	'''
     load Hi-C interaction matrix from text file
@@ -409,7 +409,7 @@ def insulation(matrix,w=5,tadRange=10):
 def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],\
 			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],\
 			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=False,\
-			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,domColors=[],oExtension=''):
+			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,pair=False,domColors=[],oExtension=''):
 	
 	'''
     plot the interaction matrix with additional datasets
@@ -454,6 +454,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     imputed 		(-im)		: a boolean if imputed epilogos will be plotted. (default:0 for observed)
     spine			(-spi)		: a boolean to remove top and left borders for each tracks (default:0) enable(1).
     compare			(-c)		: a boolean to log2 compare first two matrices (default:0) enable(1).
+    pair			(-p)		: a boolean to log2 pair-wise matrix comparisons (default:0) enable(1).
     window			(-w)		: an integer of distance to calculate insulation score.
     tadRange		(-tr)		: an integer of window to calculate local minima for TAD calls.
     fileHeader		(-fh)		: an integer for how many lines should be ignored in the matrix file (0:default).
@@ -488,8 +489,9 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	if len(arcPlots)>0: numOfrows+=len(arcPlots[0].split(','))
 	if plotCustomDomains or plotPublishedTadDomains and not plotTadDomains: numOfrows+=1
 	
-	if compare: numOfcols+=1; files.append('pseudo'); matrix1=[];matrix2=[]
-	
+	if compare and not pair: numOfcols+=1; files.append('pseudo'); matrix1=[];matrix2=[]
+	if compare and pair: numOfrows+=(len(files)-1)*4
+	if pair: marray=[]
 	
 	fig=plt.figure(figsize=(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5), facecolor='w', edgecolor='w')
 	fig.set_size_inches(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5)
@@ -508,7 +510,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	if highlights:
 		h_start,h_end,_,_,_ = read_bedGraph(highFile,resolution,chromosome)
 	
-	rlength = len(files)-1 if compare else len(files)
+	rlength = len(files)-1 if compare and not pair else len(files)
 	
 	for exp in range(0,rlength):
 		rowcounter=0
@@ -517,6 +519,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			matrix,nums,tricks=read_HiCdata(files[exp],fileHeader,fileFooter,cleanNANs,smoothNoise,window,tadRange,plotInsulation,plotTadDomains,randomBins)
 			end=len(matrix) if end == 0 else end
 			if end > len(matrix): end=len(matrix)
+			if start > len(matrix): start = 0
 			size=end-start
 			if exp == 0 : mlength = len(matrix)
 			elif len(matrix) != mlength and not randomBins:
@@ -531,6 +534,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				raise SystemExit
 			matrix,nums,tricks,clength=read_sparseHiCdata(files[exp],chromosome,bedFile,start,end,wholeGenome,window,tadRange,plotInsulation,plotTadDomains,randomBins)
 			if end > clength: end=clength
+			if start > clength: start = 0
 			end=clength if end == 0 else end
 			size=end-start
 			
@@ -549,9 +553,10 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			elif wholeGenome: ax1.set_ylabel('')
 			cmatrix = log2(pow(2, ceil(log2(max(matrix))/log2(2))))
 			if matrixMax !=0: cmatrix = matrixMax
-			if compare: matrix1=matrix
+			if compare and not pair: matrix1=matrix
 		
-		if exp==1 and compare: matrix2=matrix
+		if exp==1 and compare and not pair: matrix2=matrix
+		if compare and pair: marray.append(matrix)
 		 
 		ax1.set_ylim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 		ax1.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
@@ -1185,9 +1190,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax1.set_xticklabels(ticks)
 			ax1.set_yticklabels(ticks)
 
-	
-	
-	if compare:
+	# Single comparisons
+	if compare and not pair:
 		matrix1[(matrix1>=0) & (matrix1<=2)]=1
 		matrix2[(matrix2>=0) & (matrix2<=2)]=1
 		matrix=matrix1/matrix2
@@ -1199,6 +1203,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 		ax1.set_ylim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 		ax1.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 		ax1.set_title(('log2(%s / %s)') % (names[0],names[1]))
+		
 		if len(peakFiles) > 0:
 			origin_x,origin_y,radius,colors = read_peakFile(peakFiles[exp],resolution,chromosome)
 			for citem in range(0,len(origin_x)):
@@ -1208,7 +1213,6 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				
 		divider = make_axes_locatable(ax1)
 		img.set_clim([-4,4])
-		
 				
 		if wholeGenome : plt.setp(ax1.get_yticklabels(), visible=False)
 		ax1.get_yaxis().set_label_coords(-0.125,0.5) 
@@ -1221,7 +1225,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				ax1.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 		
 		ax1.get_xaxis().set_label_coords(0.5,-0.125)
-		if numOfrows == 4:
+		if numOfrows == 4 and not randomBins:
 			cax = divider.append_axes("bottom", size="2.5%", pad=0.9)
 			cbar = plt.colorbar(img, cax=cax, ticks=MultipleLocator(2.0), format="%.1f",orientation='horizontal',extendfrac='auto',spacing='uniform')
 			plt.setp(ax1.get_xticklabels(), visible=True)
@@ -1242,6 +1246,78 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax1.set_xticklabels(ticks)
 			ax1.set_yticklabels(ticks)
 	
+	# Pair-wise comparisons
+	if compare and pair:
+		
+		fig.subplots_adjust(hspace=1.0)
+		
+		for peer1 in range(0,len(files)):
+			
+			prowcounter = rowcounter
+			
+			matrix1 = marray[peer1]
+			matrix1[(matrix1>=0) & (matrix1<=2)]=1
+			
+			for peer2 in range(0,len(files)):	
+				
+				if peer1 != peer2:
+					
+					matrix2 = marray[peer2]
+					matrix2[(matrix2>=0) & (matrix2<=2)]=1
+					
+					matrix=matrix1/matrix2
+					
+					pax1 = plt.subplot2grid((numOfrows, 4*len(files)), (prowcounter, peer1*4), rowspan=4,colspan=4,sharex=ax1)
+					with np.errstate(divide='ignore'): img=pax1.imshow(log2(matrix),cmap=plt.get_cmap("bwr"),origin="lower",interpolation="nearest",extent=(int(start or 1) - 0.5,\
+																			  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
+		
+					pax1.set_ylim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+					pax1.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+					pax1.set_title(('log2(%s / %s)') % (names[peer1],names[peer2]))
+					
+					prowcounter+=4
+					
+					if len(peakFiles) > 0:
+						origin_x,origin_y,radius,colors = read_peakFile(peakFiles[peer1],resolution,chromosome)
+						for citem in range(0,len(origin_x)):
+							if len(colors)==0: circle = Circle((origin_x[citem], origin_y[citem]), radius[citem], facecolor='none', edgecolor='black', linewidth=1, alpha=0.85)
+							else: circle = Circle((origin_x[citem], origin_y[citem]), radius[citem], facecolor='none', edgecolor=colors[citem], linewidth=3, alpha=0.85)
+							pax1.add_patch(circle)
+				
+					divider = make_axes_locatable(pax1)
+					img.set_clim([-4,4])
+				
+					if wholeGenome : plt.setp(pax1.get_yticklabels(), visible=False)
+					pax1.get_yaxis().set_label_coords(-0.125,0.5) 
+					if plotTadDomains:
+						pax1.set_xticks(tricks, minor=True)
+						pax1.xaxis.grid(True,which='minor',linewidth=2)
+		
+					if h_start > 0:
+						for item in range(0,len(h_start)):
+							pax1.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+		
+					pax1.get_xaxis().set_label_coords(0.5,-0.125)
+					
+					if numOfrows <= prowcounter and not randomBins:
+						pax1.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))	
+
+					cax = divider.append_axes("bottom", size="2.5%", pad=0.1)
+					cbar = plt.colorbar(img, cax=cax, ticks=MultipleLocator(2.0), format="%.1f",orientation='horizontal',extendfrac='auto',spacing='uniform')
+					plt.setp(pax1.get_xticklabels(), visible=False)
+		
+					if not randomBins:
+						ticks= pax1.get_xticks().tolist()
+						if resolution*(end-start)<=500000: 
+							for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,3)
+						elif resolution*(end-start)<=1500000:
+							for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,2)
+						else: 
+							for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,1) 
+						pax1.set_xticklabels(ticks)
+						pax1.set_yticklabels(ticks)
+						
+					
 	if len(oExtension) > 0 and oExtension in plt.gcf().canvas.get_supported_filetypes().keys(): extension='.'+oExtension
 	elif 'JPEG' in plt.gcf().canvas.get_supported_filetypes_grouped().keys() or 'Joint Photographic Experts Group' in plt.gcf().canvas.get_supported_filetypes_grouped().keys(): extension='.jpeg'
 	else : extension = '.png'
@@ -1314,6 +1390,7 @@ if __name__=='__main__':
 	group1.add_argument('-sn', '--smoothNoise',type=float,default=0.5,metavar='',help="default: 0.5")
 	group1.add_argument('-mm', '--matrixMax',type=int,default=10,metavar='',help="default: 0")
 	group1.add_argument('-c', '--compare',type=int,default=False,metavar='',help="default: 0 - enable with 1")
+	group1.add_argument('-p', '--pair',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-cn', '--cleanNANs',type=int,default=True,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-hR', '--highResolution',type=int,default=True,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-pi', '--plotInsulation',type=int,default=False,metavar='',help="default: 0 - enable with 1")
