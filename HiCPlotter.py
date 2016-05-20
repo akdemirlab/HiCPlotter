@@ -453,8 +453,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     oExtension 		(-ext)		: an extension name for the output file format - default jpeg.
     imputed 		(-im)		: a boolean if imputed epilogos will be plotted. (default:0 for observed)
     spine			(-spi)		: a boolean to remove top and left borders for each tracks (default:0) enable(1).
-    compare			(-c)		: a boolean to log2 compare first two matrices (default:0) enable(1).
-    pair			(-p)		: a boolean to log2 pair-wise matrix comparisons (default:0) enable(1).
+    compare			(-c)		: a boolean to plot log2 compare first two matrices (default:0) enable(1).
+    pair			(-p)		: a boolean to plot log2 pair-wise matrix comparisons (default:0) enable(1).
     window			(-w)		: an integer of distance to calculate insulation score.
     tadRange		(-tr)		: an integer of window to calculate local minima for TAD calls.
     fileHeader		(-fh)		: an integer for how many lines should be ignored in the matrix file (0:default).
