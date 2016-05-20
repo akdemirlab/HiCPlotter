@@ -37,7 +37,7 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
 5. [Annotation](#annotation)
 6. [Whole Genome Plots](#wholegenome)
 7. [5C Plots](#5c)
-8. [Matrix Comparison](#Comparison)
+8. [Matrix Comparisons](#Comparison)
 
 # Arguments
 
@@ -408,12 +408,23 @@ _Data taken from:_ 5C data [Nora et, al. Nature 2012](http://www.nature.com/natu
 
 _Hi-C matrices can be compared by using -c parameter, which will generate log2 comparison matrix for the first two matrices._
 	
-	python HiCPlotter.py -f data/HiC/Human/HUVEC-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/IMR90-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt -chr chr10 -n HUVEC IMR90 -o comparison -s 4850 -e 5400 -mm 8 -r 25000 -c 1 -t data/HiC/Human/HUVEC_18_core_K27ac_dense2.bed data/HiC/Human/IMR90_18_core_K27ac_dense2.bed -tl States a -spi 1 -hist data/HiC/Human/wgEncodeUwRepliSeqHuvecWaveSignalRep1.bedGraph data/HiC/Human/wgEncodeUwRepliSeqImr90WaveSignalRep1.bedGraph -hl RepliSeq a -fhist 1 1
+	python HiCPlotter.py -f data/HiC/Human/HUVEC-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt data/HiC/Human/IMR90-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt -chr chr10 -n HUVEC IMR90 -o comparison -s 4850 -e 5400 -mm 8 -r 25000 -c 1 -t data/HiC/Human/HUVEC_18_core_K27ac_dense2.bed data/HiC/Human/IMR90_18_core_K27ac_dense2.bed -tl States States -spi 1 -hist data/HiC/Human/wgEncodeUwRepliSeqHuvecWaveSignalRep1.bedGraph data/HiC/Human/wgEncodeUwRepliSeqImr90WaveSignalRep1.bedGraph -hl RepliSeq RepliSeq -fhist 1 1
 
 <figure>
   <figcaption align="middle">**Comparing HUVEC and IMR90 cell lines**</figcaption>
   <img src="examplePlots/comparison-chr10.ofBins(4850-5400).25K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
+
+_For pair-wise matrix comparisons in addition to -c parameter, also use -p parameter which will plot comparison matrices for each pair of matrices._
+
+_Warning: can be memory inefficient for high-resolution matrices._
+
+	python HiCPlotter.py -f HUVEC-chr21_25kb.RAWobserved_KRnormalizedMatrix.txt NHEK-chr21_25kb.RAWobserved_KRnormalizedMatrix.txt HMEC-chr21_25kb.RAWobserved_KRnormalizedMatrix.txt -n HUVEC NHEK HMEC -chr chr21 -r 25000 -o pair -c 1 -p 1 -spi 1 -mm 8 -s 650 -e 1210 -t HUVEC.E122.states.bed NHEK.E127.states.bed HMEC.E119.states.bed -tl States States States
+
+<figure>
+  <figcaption align="middle">**Pair-wise comparisons**</figcaption>
+  <img src="examplePlots/pairWise-chr21.ofBins(650-1210).25K.jpeg" alt="Example plot from HiCPlotter">
+</figure> 
 
 # Reproducing the figures in our Genome Biology article
 
