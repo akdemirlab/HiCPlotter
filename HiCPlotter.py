@@ -26,7 +26,7 @@ import argparse
 import bisect
 import logging
 
-version = "0.6.1.compare"
+version = "0.6.2.compare"
 
 def read_HiCdata(filename,header=0,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -408,7 +408,7 @@ def insulation(matrix,w=5,tadRange=10):
 
 def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],\
 			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],\
-			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=False,\
+			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=False,plotDomainTicks=True,\
 			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,pair=False,domColors=[],oExtension=''):
 	
 	'''
@@ -599,7 +599,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 		
 		if wholeGenome : plt.setp(ax1.get_yticklabels(), visible=False)
 		ax1.get_yaxis().set_label_coords(-0.125,0.5) 
-		if plotTadDomains:
+		
+		if plotTadDomains and plotDomainTicks:
 			ax1.set_xticks(tricks, minor=True)
 			ax1.xaxis.grid(True,which='minor',linewidth=2)
 		
@@ -649,7 +650,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			plt.setp(ax2.get_yticklabels(), visible=False)
 			if exp==0: ax2.set_ylabel('Triangular')
 			ax2.get_yaxis().set_label_coords(-0.125,0.5)
-			if plotTadDomains:
+			if plotTadDomains and plotDomainTicks:
 				ax2.set_xticks(tricks, minor=True)
 				ax2.xaxis.grid(True,which='minor',linewidth=2)
 			rowcounter+=1
@@ -715,7 +716,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 							with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
 							
 				x_comps=[];x_comps2=[];y_comps=[];colors==[];	
-				if plotTadDomains:
+				if plotTadDomains and plotDomainTicks:
 					ax3.set_xticks(tricks, minor=True)
 					ax3.xaxis.grid(True,which='minor')
 				
@@ -758,7 +759,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				ax3.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 				ax3.set_ylim(0,hMax+hMax/10)
 				ax3.locator_params(axis='y',tight=False, nbins=4)
-				if plotTadDomains:
+				if plotTadDomains and plotDomainTicks:
 					ax3.set_xticks(tricks, minor=True)
 					ax3.xaxis.grid(True,which='minor')
 				
@@ -797,7 +798,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				ax3.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 				ax3.set_ylim(0,1)
 				plt.setp(ax3.get_yticklabels(), visible=False)
-				if plotTadDomains:
+				if plotTadDomains and plotDomainTicks:
 					ax3.set_xticks(tricks, minor=True)
 					ax3.xaxis.grid(True,which='minor')
 				
@@ -839,7 +840,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				ax3.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 				ax3.set_ylim(0,1)
 				plt.setp(ax3.get_yticklabels(), visible=False)
-				if plotTadDomains:
+				if plotTadDomains and plotDomainTicks:
 					ax3.set_xticks(tricks, minor=True)
 					ax3.xaxis.grid(True,which='minor')
 				
@@ -909,7 +910,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax4.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 			ax4.plot(range(0,len(nums)),nums,'black')
 			ax4.fill_between(range(0,len(nums)),nums,0,color='0.8')
-			if plotTadDomains:
+			if plotTadDomains and plotDomainTicks:
 				ax4.set_xticks(tricks, minor=True)
 				ax4.xaxis.grid(True,which='minor')
 			
@@ -934,9 +935,9 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax5 = plt.subplot2grid((numOfrows,4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
 			
 			for item in range(0,len(tricks)-1):
+				
 				tcolor='darkkhaki'
-				if len(colors)>0: tcolor=colors[item]
-				elif len(domColors)>0: tcolor='#'+domColors[exp]
+				if len(domColors)>0: tcolor='#'+domColors[exp]
 						
 				if plotDomainsAsBars:
 					if not plotPublishedTadDomains: p = Rectangle((tricks[item],0.2), (tricks[item+1]-tricks[item]), 0.25, color=tcolor,alpha=0.75)
@@ -1216,7 +1217,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				
 		if wholeGenome : plt.setp(ax1.get_yticklabels(), visible=False)
 		ax1.get_yaxis().set_label_coords(-0.125,0.5) 
-		if plotTadDomains:
+		if plotTadDomains and plotDomainTicks:
 			ax1.set_xticks(tricks, minor=True)
 			ax1.xaxis.grid(True,which='minor',linewidth=2)
 		
@@ -1289,7 +1290,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				
 					if wholeGenome : plt.setp(pax1.get_yticklabels(), visible=False)
 					pax1.get_yaxis().set_label_coords(-0.125,0.5) 
-					if plotTadDomains:
+					if plotTadDomains and plotDomainTicks:
 						pax1.set_xticks(tricks, minor=True)
 						pax1.xaxis.grid(True,which='minor',linewidth=2)
 		
@@ -1397,6 +1398,7 @@ if __name__=='__main__':
 	group1.add_argument('-dc', '--domColors', nargs='+',metavar='',default=[])
 	group1.add_argument('-ptr', '--plotTriangular',type=int,default=False,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-ptd', '--plotTadDomains',type=int,default=False,metavar='',help="default: 0 - enable with 1")
+	group1.add_argument('-pdt', '--plotDomainTicks',type=int,default=True,metavar='',help="default: 1 - enable with 0")
 	group1.add_argument('-pcd', '--plotCustomDomains',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-pdb', '--plotDomainsAsBars',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-pcdf', '--customDomainsFile',nargs='+',metavar='',default=[])
