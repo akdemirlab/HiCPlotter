@@ -96,6 +96,7 @@ _For reading more about each parameter, please check the [manual](HiCPlotterManu
     plotPublishedTadDomins	(-pptd)	: a boolean for plotting TADs from Dixon et, al. 2012 (1:default) or not (0).
     plotDomainsAsBars		(-ptdb)	: a boolean for plotting TADs as bars (1) instead of triangles (0:default)
     highResolution	(-hR)		: a boolean whether plotting high resolution (1:default) or not (0).
+    dPixels			(-dpi)		: an integer to determine dots per inch in matrix, higher values for higher resolution (default:200).
     plotInsulation	(-pi)		: a boolean for plotting insulation scores (0:default) or plot (1).
     randomBins		(-rb)		: a boolean for plotting random resolution data (1:default) or not (0).
     wholeGenome		(-wg)		: a boolean for plotting whole genome interactions (1:default) or not (0).

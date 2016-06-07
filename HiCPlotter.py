@@ -26,7 +26,7 @@ import argparse
 import bisect
 import logging
 
-version = "0.6.2.compare"
+version = "0.6.3"
 
 def read_HiCdata(filename,header=0,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -407,7 +407,7 @@ def insulation(matrix,w=5,tadRange=10):
 	return scores, pBorders
 
 def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],\
-			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],\
+			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],dPixels=200,\
 			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=False,plotDomainTicks=True,\
 			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,pair=False,domColors=[],oExtension=''):
 	
@@ -468,6 +468,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     plotPublishedTadDomins	(-pptd)	: a boolean for plotting TADs from Dixon et, al. 2012 (1:default) or not (0).
     plotDomainsAsBars		(-ptdb)	: a boolean for plotting TADs as bars (1) instead of triangles (0:default)
     highResolution	(-hR)		: a boolean whether plotting high resolution (1:default) or not (0).
+    dPixels			(-dpi)		: an integer to determine dots per inch in matrix, higher values for higher resolution (default:200).
     plotInsulation	(-pi)		: a boolean for plotting insulation scores (0:default) or plot (1).
     randomBins		(-rb)		: a boolean for plotting random resolution data (1:default) or not (0).
     wholeGenome		(-wg)		: a boolean for plotting whole genome interactions (1:default) or not (0).
@@ -1324,19 +1325,25 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	else : extension = '.png'
 	
 	print 'Plotting now!!'	
-	if wholeGenome:	
-		if highResolution:
+	if wholeGenome:
+		if highResolution and dPixels==200:
 			plt.savefig(output+'-WholeGenome-'+str(resolution/1000)+'K'+extension,dpi=200)
+		elif dPixels !=200:
+			plt.savefig(output+'-WholeGenome-'+str(resolution/1000)+'K'+extension,dpi=dPixels)
 		else:
 			plt.savefig(output+'-WholeGenome-'+str(resolution/1000)+'K'+extension)
 	elif randomBins:
-		if highResolution:
+		if highResolution and dPixels==200:
 			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').RandomBins'+extension,dpi=200)
+		elif dPixels!=200:
+			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').RandomBins'+extension,dpi=dPixels)
 		else:
 			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').RandomBins'+extension)
 	else:
-		if highResolution:
+		if highResolution  and dPixels==200:
 			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').'+str(resolution/1000)+'K'+extension,dpi=200)
+		elif dPixels!=200:
+			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').'+str(resolution/1000)+'K'+extension,dpi=dPixels)
 		else:
 			plt.savefig(output+'-'+chromosome+'.'+'ofBins('+str(start)+'-'+str(end)+').'+str(resolution/1000)+'K'+extension)
 
@@ -1390,6 +1397,7 @@ if __name__=='__main__':
 	group1.add_argument('-hmc', '--heatmapColor',type=int,default=3,metavar='',help="Colors for heatmap: Greys(0), Reds(1), YellowToBlue(2), YellowToRed(3-default), Hot(4), BlueToRed(5)")
 	group1.add_argument('-sn', '--smoothNoise',type=float,default=0.5,metavar='',help="default: 0.5")
 	group1.add_argument('-mm', '--matrixMax',type=int,default=10,metavar='',help="default: 0")
+	group1.add_argument('-dpi', '--dPixels',type=int,default=200,metavar='',help="default: 0")
 	group1.add_argument('-c', '--compare',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-p', '--pair',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-cn', '--cleanNANs',type=int,default=True,metavar='',help="default: 1 - disable with 0")
