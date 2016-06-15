@@ -24,9 +24,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import bisect
+import warnings
 import logging
 
-version = "0.6.3"
+version = "0.6.6"
 
 def read_HiCdata(filename,header=0,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -296,7 +297,94 @@ def read_epilogos(filename,resolution,chromosome,start,end): # add stopping afte
 		raise SystemExit
 	return x_scores,y_dict
 
+def read_genes(filename,resolution,chromosome,start,end):
+	
+	'''
+    reads a sorted gene location file
 
+    parameters:
+
+    filename: file name. format could be either "chr\tstart\tend" or "chr\tstart\tend\tvalue..."
+    resolution: bin size for the matrix
+	start: starting bin - 0 zero-based
+    end: end point for the plot
+    
+	returns:
+	genes : a dictionary for each gene and respective plot locations
+	row_count: a number to indicate how many rows will be used
+	row_genes: a dictionary for end locations of the genes on each row
+	'''
+	
+	try:
+		fone=open(filename,'r')
+	except IOError:
+		print >>sys.stderr, 'cannot open', filename
+		raise SystemExit
+	
+	start = resolution * start
+	end = resolution * end
+	
+	minDist = 8000
+	
+	genes = {}
+	row_list = []
+	row_genes = {}
+	current_start=0;current_end=0;prev_end=0;
+	for line in fone.xreadlines():
+		tags = line.strip().split("\t")
+		if tags[0]==chromosome:
+			if int(tags[1]) >= start and int(tags[2]) <= end and tags[1]+'-'+tags[2] not in genes.keys():
+				
+				if len(row_list)==0:
+					current_start = int(tags[1])
+					current_end = int(tags[2])
+					prev_start = int(tags[1])
+					genes[tags[1]+'-'+tags[2]]=[]
+					genes[tags[1]+'-'+tags[2]].append(1)
+					genes[tags[1]+'-'+tags[2]].append(tags[3])
+					row_list.append(current_end)
+					row_genes[1]=[]
+					row_genes[1].append(current_end)
+				else:
+					if prev_start > int(tags[1]):
+						print prev_end, int(tags[1])
+						print >>sys.stderr, 'Gene File ('+filename+') is not sorted.'
+						raise SystemExit
+					else:
+						current_end = int(tags[2])
+						current_start = int(tags[1])
+						execute=0
+						genes[tags[1]+'-'+tags[2]]=[]
+						for item in range(0,len(row_list)):
+							if current_start > row_list[item]+minDist: 
+								row_list[item]=current_end
+								execute=1
+								genes[tags[1]+'-'+tags[2]].append(item+1)
+								if item+1 not in row_genes.keys(): row_genes[item+1]=[]
+								row_genes[item+1].append(current_end)
+								break
+						if execute == 0:
+							genes[tags[1]+'-'+tags[2]].append(len(row_list)+1)
+							row_list.append(current_end)
+							if len(row_list) not in row_genes.keys(): row_genes[len(row_list)]=[]
+							row_genes[len(row_list)].append(current_end)
+							
+						genes[tags[1]+'-'+tags[2]].append(tags[3])
+						if len(tags)>5:
+							genes[tags[1]+'-'+tags[2]].append(tags[4])
+							genes[tags[1]+'-'+tags[2]].append(tags[5])
+							genes[tags[1]+'-'+tags[2]].append(tags[6])
+							if len(tags)>7:
+								hex = '#%02x%02x%02x' % (int(tags[7].split(',')[0]), int(tags[7].split(',')[1]), int(tags[7].split(',')[2]))
+								genes[tags[1]+'-'+tags[2]].append(hex)
+								
+					prev_start = current_start
+							
+	if len(genes.keys()) ==0:
+		print >>sys.stderr, 'Gene File ('+filename+') has some missing values'
+		raise SystemExit
+	
+	return genes,len(row_list)+1,row_genes
 
 def where(start,end,arr):
     """Find where the start location and end location indexes in an array"""
@@ -406,10 +494,10 @@ def insulation(matrix,w=5,tadRange=10):
 	
 	return scores, pBorders
 
-def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],\
-			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],dPixels=200,\
+def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],plotGenes='',\
+			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],dPixels=200,compareEx='',compareSm='',\
 			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=False,plotDomainTicks=True,\
-			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,pair=False,domColors=[],oExtension=''):
+			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,pair=False,domColors=[],oExtension='',geneLabels=True):
 	
 	'''
     plot the interaction matrix with additional datasets
@@ -426,6 +514,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     verbose			(-v)		: print version and arguments into a file.
     tripleColumn	(-tri)		: a boolean if input file is from HiC-Pro pipeline.
     bedFile			(-bed)		: a file name for bin annotations, if -tri parameter is set.
+    plotGenes		(-g)		: a sorted bed file for plotting the locations of the genes.
+    geneLabels		(-gl)		: a boolean for plotting gene labels (1:default) or not (0).
     histograms		(-hist)		: a list of filenames to be plotted as histogram.
     histLabels		(-h)		: a list of labels for the histograms.
     fillHist		(-fhist)	: a list whether each histogram will be filled (1) or not (0:default).
@@ -454,6 +544,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     imputed 		(-im)		: a boolean if imputed epilogos will be plotted. (default:0 for observed)
     spine			(-spi)		: a boolean to remove top and left borders for each tracks (default:0) enable(1).
     compare			(-c)		: a boolean to plot log2 compare first two matrices (default:0) enable(1).
+    compareExt		(-ce)		: comma separated two integers for log2 comparison matrix color spectrum (e.g. 2,4 for -2 to 4). 
+    compareSm		(-cs)		: comma separated two integers for log2 comparison matrix smoothing (e.g. for 0,2 values between 0-2 will be white in image).
     pair			(-p)		: a boolean to plot log2 pair-wise matrix comparisons (default:0) enable(1).
     window			(-w)		: an integer of distance to calculate insulation score.
     tadRange		(-tr)		: an integer of window to calculate local minima for TAD calls.
@@ -480,7 +572,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	
 	numOfcols = len(files)
 	numOfrows = 4
-	if plotTriangular: numOfrows+=1 
+	if plotTriangular: numOfrows+=1
+	if len(plotGenes)>0: numOfrows+=2
 	if plotTadDomains: numOfrows+=1
 	if plotInsulation: numOfrows+=1
 	if epiLogos: numOfrows+=1
@@ -667,6 +760,111 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 		if randomBins and numOfrows > rowcounter:
 			print >>sys.stderr, 'Random bins data can be plotted only as matrix and triangular - this feature will be improved in future releases'
 			raise SystemExit
+		
+		''' Gene plotting'''
+		
+		if len(plotGenes) > 0:
+		
+			ax3 = plt.subplot2grid((numOfrows, 4*len(files)), (rowcounter, exp*4), rowspan=2,colspan=4,sharex=ax1)
+			if exp==0: ax3.set_ylabel('Genes')
+			ax3.get_yaxis().set_label_coords(-0.125,0.5)
+			genes,trackCount,nearest = read_genes(plotGenes[0],resolution,chromosome,start,end)
+			plength = (end-start)*float(resolution)/1000000
+						
+			for item in genes.keys():
+								
+				if len(genes[item])>2: #plot with introns
+					gstart = float(item.split('-')[0])/resolution
+					gend = float(item.split('-')[1])/resolution
+					gtrack = genes[item][0]
+					gestart = genes[item][3].split(',')
+					geend = genes[item][4].split(',')
+					
+					ax3.plot([gstart,gend],[trackCount-gtrack+0.125,trackCount-gtrack+0.125],'#0C0C78', linewidth=0.5, zorder = -1)
+					
+					arrow = 5
+					if genes[item][2]=='-': arrow=4
+					
+					if plength <= 30:
+					
+						for exon in range(0,len(geend)-1):
+						
+							if len(genes[item])>5:
+								grect = Rectangle((float(gestart[exon])/resolution,trackCount-gtrack), (float(geend[exon])/resolution-float(gestart[exon])/resolution), 0.25, color=genes[item][5])
+							else:
+								grect = Rectangle((float(gestart[exon])/resolution,trackCount-gtrack), (float(geend[exon])/resolution-float(gestart[exon])/resolution), 0.25, color='#3C3C8C')
+						
+						
+							ax3.add_patch(grect)
+							if exon < len(geend)-2:
+								if (float(gestart[exon+1])/resolution-float(geend[exon])/resolution) > 0.5:
+									if genes[item][2]=='-': ax3.plot(float(gestart[exon])/resolution+(float(gestart[exon+1])/resolution-float(geend[exon])/resolution)/2-0.125,trackCount-gtrack+0.125, marker=arrow, color='#0C0C78', markersize=1.25)
+									else: ax3.plot(float(gestart[exon])/resolution+(float(gestart[exon+1])/resolution-float(geend[exon])/resolution)/2+0.125,trackCount-gtrack+0.125, marker=arrow, color='#0C0C78', markersize=1.25)					
+												
+					else:
+							
+						if len(genes[item])>5: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color=genes[item][5])
+						else: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color='#3C3C8C')
+						ax3.add_patch(rect)			
+								
+				else: # simple plotting
+										
+					gstart = float(item.split('-')[0])/resolution
+					gend = float(item.split('-')[1])/resolution
+					gtrack = genes[item][0]
+					
+					if len(genes[item])>5: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color=genes[item][5])
+					else: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color='#3C3C8C')
+					ax3.add_patch(rect)
+									
+ 				
+ 				if plength <= 30 and geneLabels: # also consider the gene density
+					
+					#optimize the font size	
+ 				
+ 					gindex = nearest[gtrack].index(int(item.split('-')[1]))
+ 					upgene = nearest[gtrack][gindex-1]
+ 					if gindex < len(nearest[gtrack])-1: downgene = nearest[gtrack][gindex+1] 
+ 					else: downgene = upgene
+ 
+					if plength <= 2 or plength < 1: plength=1
+					elif plength <= 4: plength = 2
+					else : plength/1.5
+					gdist = min(abs(nearest[gtrack][gindex]-upgene),abs(nearest[gtrack][gindex]-downgene))
+					if len(nearest[gtrack])==1: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=4.5/plength)
+					elif float(gdist)/resolution >= 2 and len(genes[item][1])<=6: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=4.5/plength)
+					elif float(gdist)/resolution >= 2 and len(genes[item][1])>6: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=3/plength)
+					elif float(gdist)/resolution < 2 and float(gdist)/resolution > 1 and len(genes[item][1])<=6: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=2.5/plength)
+					elif float(gdist)/resolution < 2 and float(gdist)/resolution >1 and len(genes[item][1])>6: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=2/plength)
+					elif float(gdist)/resolution <= 1 and float(gdist)/resolution >= 0.25: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=1.8)
+					else: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=1)
+				
+					#if lblstndrd == 1:
+ 						#if len(genes[item][1])>5: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=0.5)
+ 						#else : ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=3)	
+			
+			ax3.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+			ax3.set_ylim(0,trackCount+1)
+			plt.setp(ax3.get_yticklabels(), visible=False)
+			if plotTadDomains and plotDomainTicks:
+				ax3.set_xticks(tricks, minor=True)
+				ax3.xaxis.grid(True,which='minor')
+			
+			if h_start > 0:
+				for item in range(0,len(h_start)):
+					ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+			
+			ax3.spines['right'].set_visible(False)
+			ax3.spines['left'].set_visible(False)
+			ax3.spines['top'].set_visible(False)
+			ax3.tick_params(left="off")
+			ax3.tick_params(right="off")
+			ax3.xaxis.set_ticks_position('bottom')
+			
+			rowcounter+=2
+			if numOfrows <= rowcounter and not randomBins: ax3.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
+			elif numOfrows <= rowcounter and randomBins: ax3.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
+			
 		
 		''' Histogram plotting '''
 		
@@ -1194,8 +1392,19 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 
 	# Single comparisons
 	if compare and not pair:
-		matrix1[(matrix1>=0) & (matrix1<=2)]=1
-		matrix2[(matrix2>=0) & (matrix2<=2)]=1
+		
+		if len(compareSm)==0 :
+		
+			matrix1[(matrix1>=0) & (matrix1<=2)]=1
+			matrix2[(matrix2>=0) & (matrix2<=2)]=1
+		
+		else:
+			
+			slow = int(compareSm.split(',')[0])
+			shigh = int(compareSm.split(',')[1])
+			matrix1[(matrix1>=slow) & (matrix1<=shigh)]=1
+			matrix2[(matrix2>=slow) & (matrix2<=shigh)]=1
+
 		matrix=matrix1/matrix2
 		#matrix[np.logical_and(matrix>=0.5, matrix<=1)]=1
 		ax1 = plt.subplot2grid((numOfrows, 4*len(files)), (0, (exp+1)*4), rowspan=4,colspan=4)
@@ -1214,7 +1423,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				ax1.add_patch(circle)
 				
 		divider = make_axes_locatable(ax1)
-		img.set_clim([-4,4])
+		if len(compareEx)>0 : clow = int(compareEx.split(',')[0])*-1;chigh=int(compareEx.split(',')[1]);img.set_clim([clow,chigh])
+		else: img.set_clim([-4,4])
 				
 		if wholeGenome : plt.setp(ax1.get_yticklabels(), visible=False)
 		ax1.get_yaxis().set_label_coords(-0.125,0.5) 
@@ -1258,15 +1468,28 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			prowcounter = rowcounter
 			
 			matrix1 = marray[peer1]
-			matrix1[(matrix1>=0) & (matrix1<=2)]=1
+			
+			if len(compareSm)==0 :
+				matrix1[(matrix1>=0) & (matrix1<=2)]=1
+			else:
+				slow = int(compareSm.split(',')[0])
+				shigh = int(compareSm.split(',')[1])
+				matrix1[(matrix1>=slow) & (matrix1<=shigh)]=1
 			
 			for peer2 in range(0,len(files)):	
 				
 				if peer1 != peer2:
 					
 					matrix2 = marray[peer2]
-					matrix2[(matrix2>=0) & (matrix2<=2)]=1
 					
+					if len(compareSm)==0 :
+						matrix2[(matrix2>=0) & (matrix2<=2)]=1
+					else:
+						slow = int(compareSm.split(',')[0])
+						shigh = int(compareSm.split(',')[1])
+						matrix2[(matrix2>=slow) & (matrix2<=shigh)]=1
+					
+
 					matrix=matrix1/matrix2
 					
 					pax1 = plt.subplot2grid((numOfrows, 4*len(files)), (prowcounter, peer1*4), rowspan=4,colspan=4,sharex=ax1)
@@ -1287,7 +1510,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 							pax1.add_patch(circle)
 				
 					divider = make_axes_locatable(pax1)
-					img.set_clim([-4,4])
+					if len(compareEx)>0 : clow = int(compareEx.split(',')[0])*-1;chigh=int(compareEx.split(',')[1]);img.set_clim([clow,chigh])
+					else: img.set_clim([-4,4])
 				
 					if wholeGenome : plt.setp(pax1.get_yticklabels(), visible=False)
 					pax1.get_yaxis().set_label_coords(-0.125,0.5) 
@@ -1323,6 +1547,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	if len(oExtension) > 0 and oExtension in plt.gcf().canvas.get_supported_filetypes().keys(): extension='.'+oExtension
 	elif 'JPEG' in plt.gcf().canvas.get_supported_filetypes_grouped().keys() or 'Joint Photographic Experts Group' in plt.gcf().canvas.get_supported_filetypes_grouped().keys(): extension='.jpeg'
 	else : extension = '.png'
+	
+	warnings.simplefilter(action = "ignore", category = FutureWarning)
 	
 	print 'Plotting now!!'	
 	if wholeGenome:
@@ -1381,6 +1607,8 @@ if __name__=='__main__':
 	group1.add_argument('-high', '--highlights',default=0,type=int,metavar='',help='default:0 - enable with 1')
 	group1.add_argument('-hf', '--highFile',default='',metavar='',help='')
 	group1.add_argument('-peak', '--peakFiles', nargs='+',metavar='',default=[])
+	group1.add_argument('-g', '--plotGenes', nargs='+',metavar='',default='')
+	group1.add_argument('-gl', '--geneLabels',type=int,default=True,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-ep', '--epiLogos',metavar='',default='')
 	group1.add_argument('-ext', '--oExtension',default='',metavar='')
 	group1.add_argument('-spi', '--spine',metavar='',type=int,default=False,help="default: 0 - enable with 1")
@@ -1399,6 +1627,8 @@ if __name__=='__main__':
 	group1.add_argument('-mm', '--matrixMax',type=int,default=10,metavar='',help="default: 0")
 	group1.add_argument('-dpi', '--dPixels',type=int,default=200,metavar='',help="default: 0")
 	group1.add_argument('-c', '--compare',type=int,default=False,metavar='',help="default: 0 - enable with 1")
+	group1.add_argument('-ce', '--compareEx',default='',metavar='',help='')
+	group1.add_argument('-cs', '--compareSm',default='',metavar='',help='')
 	group1.add_argument('-p', '--pair',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-cn', '--cleanNANs',type=int,default=True,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-hR', '--highResolution',type=int,default=True,metavar='',help="default: 1 - disable with 0")

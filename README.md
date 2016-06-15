@@ -26,18 +26,19 @@ _HiCPlotter is purposefully designed with the least amount of dependencies to ma
 
 1. [Input Files](#inputfiles)
 2. [Basic Usage](#usage)
-3. [Tracks](#tracks)
+3. [Drawing Genes](#genes)
+4. [Tracks](#tracks)
    1. [Histograms](#histograms)
    2. [Bar plots](#barplots)
    3. [Arcs](#arcs)
    4. [Tile plots](#tileplots)
    5. [Epilogos plotting](#epilogos)
    6. [Domains](#domains)
-4. [Highlights](#highlights)
-5. [Annotation](#annotation)
-6. [Whole Genome Plots](#wholegenome)
-7. [5C Plots](#5c)
-8. [Matrix Comparisons](#Comparison)
+5. [Highlights](#highlights)
+6. [Annotation](#annotation)
+7. [Whole Genome Plots](#wholegenome)
+8. [5C Plots](#5c)
+9. [Matrix Comparisons](#Comparison)
 
 # Arguments
 
@@ -55,6 +56,8 @@ _For reading more about each parameter, please check the [manual](HiCPlotterManu
     verbose			(-v)		: print version and arguments into a file.
     tripleColumn	(-tri)		: a boolean if input file is from HiC-Pro pipeline.
     bedFile			(-bed)		: a file name for bin annotations, if -tri parameter is set.
+    plotGenes		(-g)		: a sorted bed file for plotting the locations of the genes.
+    geneLabels		(-gl)		: a boolean for plotting gene labels (1:default) or not (0).
     histograms		(-hist)		: a list of filenames to be plotted as histogram.
     histLabels		(-h)		: a list of labels for the histograms.
     fillHist		(-fhist)	: a list whether each histogram will be filled (1) or not (0:default).
@@ -171,8 +174,8 @@ User should set -tri parameter to 1 and provide the bin-annotation bed file with
 For visualizing any type of genomic data, HiCPlotter uses bedGraph format.
 	
 	
-	chromA  chromStartA  chromEndA  dataValueA color     text
-	chr1	10000		 10500		10.0	   250,13,27 Polycomb
+	chromA  chromStartA  chromEndA  dataValueA color (optional)     text (optional)
+	chr1	10000		 10500		10.0	   250,13,27		   Polycomb
 
 4th column should be a floating number for histograms.
 
@@ -188,6 +191,22 @@ For annotating the interaction matrix, HiCPlotter requires the following format.
 	chr10	100180000	100190000	chr10	100410000	100420000	0,255,255
 	chr10	101600000	101610000	chr10	101800000	101810000	0,255,255
 	chr10	102100000	102105000	chr10	102190000	102195000	0,255,255
+
+## Gene File
+
+For plotting genes under the interaction matrix, HiCPlotter requires the following format.
+	
+	
+	chrom  geneStart  geneEnd	geneName	strand(optional)	exonStarts(optional)	exonEnds(optional)	color (optional)
+	chr1	11873		 14409	DDX11L1		+					11873,12645,13220,		12227,12697,14409,	250,13,27
+	chr1	14361		 16765	WASH7P		-					14361,14969,15795,16606,		14829,15038,15942,16765,
+	chr1	14361		 19759	WASH7P		-					14361,14969,15795,16606,16857,17232,17605,17914,18267,18912,		14829,15038,15947,16765,17055,17368,17742,18061,18366,19759,
+
+This file should be sorted based on 2nd column (geneStart).
+
+For 6th (exonStarts) and 7th (exonEnds) columns, there should be a comma at the very end.
+
+If 5th column is provided then 6th and 7th columns should be provided as well.
 
 # Usage <a name="usage"></a>
 
@@ -241,6 +260,16 @@ _Color code of the heatmaps can be changed with -hmc parameter_
 <figure>
   <figcaption align="middle">**Chromosome interactions for wild type, RAD21-depleted, CTCF-depleted cells.**</figcaption>
   <img src="examplePlots/Rad21.CTCF-chr6.ofBins(2800-2950).40K.jpeg" alt="Example plot from HiCPlotter">
+</figure>
+
+# Plotting Genes <a name="genes"></a>
+
+_Saving the output file as a pdf gives better output compared to default jpeg file._
+
+	python HiCPlotter.py -f data/HiC/Human/IMR90-chr10_25kb.RAWobserved_KRnormalizedMatrix.txt -o genes -n IMR90 -chr chr17 -g genes.sorted.bed -r 25000 -s 1800 -e 1850 -hist data/HiC/Human/IMR90.Rad21.bedGraph -hl Rad21 -hm 500 -ext pdf
+	
+<figure>
+  <img src="examplePlots/genes-chr17.ofBins(1800-1850).25K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
 
