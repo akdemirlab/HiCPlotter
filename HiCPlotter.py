@@ -1209,8 +1209,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax5.locator_params(axis='y',tight=False, nbins=3)
 			ax5.get_yaxis().set_label_coords(-0.125,0.5)
 			plt.setp(ax5.get_yticklabels(), visible=False)
-			if not plotCustomDomains and not randomBins: ax5.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
-			elif not plotCustomDomains and randomBins: ax5.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
+			if numOfrows <= rowcounter and not plotCustomDomains and not randomBins: ax5.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
+			elif numOfrows <= rowcounter and not plotCustomDomains and randomBins: ax5.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
 			ax5.set_ylim(0,0.75)
 			if spine > 0:
 				ax5.spines['right'].set_visible(False)
@@ -1300,8 +1300,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax5.locator_params(axis='y',tight=False, nbins=3)
 			ax5.get_yaxis().set_label_coords(-0.125,0.5)
 			plt.setp(ax5.get_yticklabels(), visible=False)
-			if not randomBins : ax5.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
-			else: ax5.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
+			if numOfrows <= rowcounter and not randomBins : ax5.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
+			elif numOfrows <= rowcounter and randomBins: ax5.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
 			ax5.set_ylim(0,0.75)
 			if spine > 0:
 				ax5.spines['right'].set_visible(False)
@@ -1369,8 +1369,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax5.locator_params(axis='y',tight=False, nbins=3)
 			ax5.get_yaxis().set_label_coords(-0.125,0.5)
 			plt.setp(ax5.get_yticklabels(), visible=False)
-			if not randomBins : ax5.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
-			else: ax5.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
+			if numOfrows <= rowcounter and not randomBins : ax5.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
+			elif numOfrows <= rowcounter and randomBins : ax5.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
 			ax5.set_ylim(0,0.75)
 			if spine > 0:
 				ax5.spines['right'].set_visible(False)

@@ -311,7 +311,7 @@ _To remove frames for each track, use --spine (-spi) 1 parameter._
 
 _Gene Expression data taken from:_ [Plasschaert et, al. NAR 2014](http://www.ncbi.nlm.nih.gov/pubmed/24121688)
 
-_Color can be specied as a hexadecimal number (-bc 9ACD32) or for each arc by specified RGB colors in bedGraph file._
+_Color can be specified as a hexadecimal number (-bc 9ACD32) or for each bar by specified RGB colors in bedGraph file._
 
 	python HiCPlotter.py -f data/HiC/Mouse/mES.chr6 -n mES -chr chr6 -r 40000 -o HoxDb -b data/HiC/Mouse/GSE39522_rnaseq_gene_expression.bedGraph -bl GeneExpression -s 2900 -e 3075 -fh 0 -pi 0 -bc 9ACD32 -bm 500 -mm 8 -spi 1
 
@@ -323,7 +323,7 @@ _Color can be specied as a hexadecimal number (-bc 9ACD32) or for each arc by sp
 
 ## Arcs plotting <a name="arcs"></a>
 
-_Arc plots require a bedGraph file (-a file1), color can be specied as a hexadecimal number (-ac B4B4B4) or for each arc by specified RGB colors in bedGraph file._
+_Arc plots require a bedGraph file (-a file1), color can be specified as a hexadecimal number (-ac B4B4B4) or for each arc by specified RGB colors in bedGraph file._
 
 _Data taken from:_ SMC ChIA-Pet and Polycomb Domains: [Dowen et, al. Cell 2014](http://www.sciencedirect.com/science/article/pii/S0092867414011799), Hi-C and TADs : [Dixon et, al. Nature 2012](http://www.nature.com/nature/journal/v485/n7398/full/nature11082.html?WT.ec_id=NATURE-20120517) and H3K27me3 : [Mouse ENCODE Project](http://www.mouseencode.org/)
 	
@@ -395,7 +395,7 @@ _Data taken from:_ Hi-C and HiCCUP peaks  : [Rao et, al. Cell 2014](http://www.c
 
 ## Whole Genome Plotting <a name="wholegenome"></a>
 
-_Whole genome plotting can be activated by -wg parameter (Please note: currently only matrixes can be plotted with this option)._
+_Whole genome plotting can be activated by -wg parameter._
 
 _Data taken from:_ Hi-C : [Seitan et, al. Genome Research 2014](http://genome.cshlp.org/cgi/pmidlookup?view=long&pmid=24002784)
 	
@@ -410,12 +410,16 @@ _Data taken from:_ Hi-C : [Seitan et, al. Genome Research 2014](http://genome.cs
 
 _(-chr) parameter will be used designate to the end chromosome, such as (-chr chr11) will plot interactions starting from chr1 to chr11._ 
 
+_Please use (-chr chrY) for whole genome interaction plots._
+
+	python HiCPlotter.py -f triple.sparse -tri 1 -bed triple.bed -wg 1 -chr chrY -o WholeGenome -n hES
+
 <figure>
   <figcaption align="middle">**hES whole genome interactions**</figcaption>
   <img src="examplePlots/hES-WholeGenome.chrY-1000K.jpeg" alt="Example plot from HiCPlotter">
 </figure>
 
-_Please use (-chr chrY) for whole genome interaction plots._
+	python HiCPlotter.py -f triple.sparse -tri 1 -bed triple.bed -wg 1 -chr chr11 -o WholeGenome -n hES
 
 <figure>
   <figcaption align="middle">**hES interactions from chr1 to chr11**</figcaption>
