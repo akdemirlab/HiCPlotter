@@ -69,8 +69,8 @@ def read_HiCdata(filename,header=0,footer=0,clean_nans=True,smooth_noise=0.5,ins
 	return matrix,nums,tricks
 
 
-def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,wholeGenome,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
-	
+def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,wholeGenome=False,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
+						
 	'''
     load Hi-C interaction matrix from triple-column sparse file
     
@@ -93,7 +93,8 @@ def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,wholeGenome,s
     tricks: putative insulator sites
 
     '''
-		
+	
+	
 	chromosomes = {}
 	
 	try:
@@ -143,7 +144,7 @@ def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,wholeGenome,s
 	
 	matrix = mtx.todense()
 	
-	if plotInsulation or plotTadDomains and not wholeGenome: nums,tricks=insulation(matrix,ins_window,rel_window)
+	if plotInsulation or plotTadDomains and not wholeGenome: nums,tricks=insulation(matrix,ins_window,rel_window,True,startBin)
 	else: nums=[];tricks=[];
 	
 	#matrix[matrix<smooth_noise]=0
@@ -423,7 +424,7 @@ def get_ellipse_coords(a=0.0, b=0.0, x=0.0, y=0.0, angle=0.0, k=2):
     return pts
 
 
-def insulation(matrix,w=5,tadRange=10):
+def insulation(matrix,w=5,tadRange=10,triple=False,mstart=0):
 	
 	'''
     calculate relative minima in a given matrix
@@ -447,22 +448,28 @@ def insulation(matrix,w=5,tadRange=10):
 	indexes = []
 	pBorders=[]
 	
+	
 	for i in xrange(start,end,1):
 		diag=0;counter=0
 		for j in xrange(i,i+w):
 			if j == end: break
 			else:
-				if isnan(matrix[j][j-2*counter]): diag +=0 # pad with zeros for nan
-				else: diag += matrix[j][j-2*counter]
+				if triple:
+					if isnan(matrix[j,j-2*counter]): diag +=0 # pad with zeros for nan
+					else: diag += matrix[j,j-2*counter]
+				else:
+					if isnan(matrix[j][j-2*counter]): diag +=0 # pad with zeros for nan
+					else: diag += matrix[j][j-2*counter]
 				counter+=1
 		scores.append(diag)
 		indexes.append(i)
 
 	arr= np.array(scores)
-	
+
 	arr[arr == 0] = 10000
 	borders = argrelextrema(arr, np.less,order=tadRange) #also try this function scipy.signal.find_peaks_cwt
 	regions = borders[0]
+	
 	
 	for item in range(0,len(regions)-1):	
 		if item == 0: #check the first boundary
@@ -491,6 +498,8 @@ def insulation(matrix,w=5,tadRange=10):
 					if regions[item+1] not in pBorders and regions[item+1]+1 not in regions: pBorders.append(regions[item+1])
 	if regions[-1] not in pBorders: pBorders.append(regions[-1])
 	if len(matrix) not in pBorders: pBorders.append(len(matrix))
+	
+	if triple: pBorders=map(lambda x:x+mstart, pBorders)
 	
 	return scores, pBorders
 
@@ -626,15 +635,16 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			if bedFile == '':
 				print >>sys.stderr, 'an annotation bed file is required for triple-column sparse input.'
 				raise SystemExit
-			matrix,nums,tricks,clength=read_sparseHiCdata(files[exp],chromosome,bedFile,start,end,wholeGenome,window,tadRange,plotInsulation,plotTadDomains,randomBins)
+			matrix,nums,tricks,clength=read_sparseHiCdata(files[exp],chromosome,bedFile,start,end,wholeGenome,smoothNoise,window,tadRange,plotInsulation,plotTadDomains,randomBins)
 			if end > clength: end=clength
 			if start > clength: start = 0
 			end=clength if end == 0 else end
 			size=end-start
-			
+	
 		length = len(matrix)
 		name=names[exp]	
 		schr=chromosome.replace("chr","")
+		
 		
 		''' MAIN matrix plotting '''
 	
@@ -1099,7 +1109,9 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 		if plotInsulation: 
 		
 			ax4 = plt.subplot2grid((numOfrows,4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
-			if exp==0: 
+			if exp==0 and tripleColumn:
+				ins_score = max(nums)+max(nums)/5
+			elif exp==0: 
 				ax4.set_ylabel('Insulation')
 				ins_score = max(nums[start:end])+max(nums[start:end])/5
 					
@@ -1107,8 +1119,13 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax4.locator_params(axis='y',tight=False, nbins=3)		
 			ax4.set_ylim(0,ins_score)
 			ax4.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
-			ax4.plot(range(0,len(nums)),nums,'black')
-			ax4.fill_between(range(0,len(nums)),nums,0,color='0.8')
+			if not tripleColumn:
+				ax4.plot(range(0,len(nums)),nums,'black')
+				ax4.fill_between(range(0,len(nums)),nums,0,color='0.8')
+			else:
+				ax4.plot(np.arange(start,end),nums,'black')
+				ax4.fill_between(np.arange(start,end),nums,0,color='0.8')
+				
 			if plotTadDomains and plotDomainTicks:
 				ax4.set_xticks(tricks, minor=True)
 				ax4.xaxis.grid(True,which='minor')
@@ -1142,11 +1159,18 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 					if not plotPublishedTadDomains: p = Rectangle((tricks[item],0.2), (tricks[item+1]-tricks[item]), 0.25, color=tcolor,alpha=0.75)
 					else: p = Rectangle((tricks[item],0.1), (tricks[item+1]-tricks[item]), 0.15, color=tcolor,alpha=0.75)
 				else:
-					pts= np.array([[tricks[item],0],[tricks[item+1],0],[floor((tricks[item]+tricks[item+1])/2),0.75]])
-					p = Polygon(pts, closed=True,color=tcolor,alpha=max(nums[tricks[item]:tricks[item+1]])/max(nums))
-				if sum(nums[slice(tricks[item],tricks[item+1])]) > np.percentile(np.array(nums),75):
+					if not tripleColumn:
+						pts= np.array([[tricks[item],0],[tricks[item+1],0],[floor((tricks[item]+tricks[item+1])/2),0.75]])
+						p = Polygon(pts, closed=True,color=tcolor,alpha=max(nums[tricks[item]:tricks[item+1]])/max(nums))
+					else:
+						pts= np.array([[tricks[item],0],[tricks[item+1],0],[floor((tricks[item]+tricks[item+1])/2),0.75]])
+						p = Polygon(pts, closed=True,color=tcolor)
+				
+				if not tripleColumn and sum(nums[slice(tricks[item],tricks[item+1])]) > np.percentile(np.array(nums),75):
 					ax5.add_patch(p)
-
+				elif tripleColumn and sum(nums[slice(tricks[item]-start,tricks[item+1]-start)]) > np.percentile(np.array(nums),75):
+					ax5.add_patch(p)
+					
 			if plotPublishedTadDomains:
 				## adding TAD domain predictions from Dixon et al. Nature 2009
 				if publishedTadDomainOrganism:
@@ -1393,13 +1417,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	# Single comparisons
 	if compare and not pair:
 		
-		if len(compareSm)==0 :
+		if len(compareSm)>0 :
 		
-			matrix1[(matrix1>=0) & (matrix1<=2)]=1
-			matrix2[(matrix2>=0) & (matrix2<=2)]=1
-		
-		else:
-			
 			slow = int(compareSm.split(',')[0])
 			shigh = int(compareSm.split(',')[1])
 			matrix1[(matrix1>=slow) & (matrix1<=shigh)]=1
@@ -1469,9 +1488,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			
 			matrix1 = marray[peer1]
 			
-			if len(compareSm)==0 :
-				matrix1[(matrix1>=0) & (matrix1<=2)]=1
-			else:
+			if len(compareSm)>0 :
 				slow = int(compareSm.split(',')[0])
 				shigh = int(compareSm.split(',')[1])
 				matrix1[(matrix1>=slow) & (matrix1<=shigh)]=1
@@ -1482,9 +1499,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 					
 					matrix2 = marray[peer2]
 					
-					if len(compareSm)==0 :
-						matrix2[(matrix2>=0) & (matrix2<=2)]=1
-					else:
+					if len(compareSm)>0 :
 						slow = int(compareSm.split(',')[0])
 						shigh = int(compareSm.split(',')[1])
 						matrix2[(matrix2>=slow) & (matrix2<=shigh)]=1
