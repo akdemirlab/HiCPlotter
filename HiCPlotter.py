@@ -27,7 +27,7 @@ import bisect
 import warnings
 import logging
 
-version = "0.6.6"
+version = "0.6.7"
 
 def read_HiCdata(filename,header=0,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -505,7 +505,7 @@ def insulation(matrix,w=5,tadRange=10,triple=False,mstart=0):
 
 def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],plotGenes='',\
 			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],dPixels=200,compareEx='',compareSm='',\
-			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=False,plotDomainTicks=True,\
+			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=False,plotDomainTicks=True,triangularHeight=False,\
 			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,pair=False,domColors=[],oExtension='',geneLabels=True):
 	
 	'''
@@ -581,7 +581,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	
 	numOfcols = len(files)
 	numOfrows = 4
-	if plotTriangular: numOfrows+=1
+	if plotTriangular: numOfrows+=2
 	if len(plotGenes)>0: numOfrows+=2
 	if plotTadDomains: numOfrows+=1
 	if plotInsulation: numOfrows+=1
@@ -736,10 +736,14 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 		
 		if plotTriangular: 
 		
-			ax2 = plt.subplot2grid((numOfrows, 4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
+			ax2 = plt.subplot2grid((numOfrows, 4*len(files)), (rowcounter, exp*4), rowspan=2,colspan=4,sharex=ax1)
 			dst=ndimage.rotate(matrix,45,order=0,reshape=True,prefilter=False,cval=0)
 			matrix=[];
-			height=length/5
+			if not triangularHeight: height=length/5
+			else: 
+				if triangularHeight <= length: height = triangularHeight
+				else: height = length/2
+			
 			ax2.set_ylim(start+length/2,start+length/2+height)
 			ax2.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 			ax2.set(adjustable='box-forced')
@@ -757,13 +761,19 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			if plotTadDomains and plotDomainTicks:
 				ax2.set_xticks(tricks, minor=True)
 				ax2.xaxis.grid(True,which='minor',linewidth=2)
-			rowcounter+=1
+			rowcounter+=2
 			if numOfrows <= rowcounter and not randomBins: ax2.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
 			elif numOfrows <= rowcounter and randomBins: ax2.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
 			
 			if h_start > 0:
 				for item in range(0,len(h_start)):
 					ax2.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+			
+			ax2.spines['right'].set_visible(False)
+			ax2.spines['top'].set_visible(False)
+			ax2.spines['left'].set_visible(False)
+			ax2.xaxis.set_ticks_position('bottom')
+			plt.gca().yaxis.set_major_locator(plt.NullLocator())
 			
 		''' Random Bins matrix/triangular plotting '''
 		
@@ -1649,7 +1659,8 @@ if __name__=='__main__':
 	group1.add_argument('-hR', '--highResolution',type=int,default=True,metavar='',help="default: 1 - disable with 0")
 	group1.add_argument('-pi', '--plotInsulation',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-dc', '--domColors', nargs='+',metavar='',default=[])
-	group1.add_argument('-ptr', '--plotTriangular',type=int,default=False,metavar='',help="default: 1 - disable with 0")
+	group1.add_argument('-ptr', '--plotTriangular',type=int,default=False,metavar='',help="default: 0 - enable with 1")
+	group1.add_argument('-trh', '--triangularHeight',type=int,default=False,metavar='',help="default: (end-start)/5")
 	group1.add_argument('-ptd', '--plotTadDomains',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-pdt', '--plotDomainTicks',type=int,default=True,metavar='',help="default: 1 - enable with 0")
 	group1.add_argument('-pcd', '--plotCustomDomains',type=int,default=False,metavar='',help="default: 0 - enable with 1")
