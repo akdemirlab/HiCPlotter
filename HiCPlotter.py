@@ -27,7 +27,7 @@ import bisect
 import warnings
 import logging
 
-version = "0.6.7"
+version = "0.7.0"
 
 def read_HiCdata(filename,header=0,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -503,10 +503,10 @@ def insulation(matrix,w=5,tadRange=10,triple=False,mstart=0):
 	
 	return scores, pBorders
 
-def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],plotGenes='',\
+def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],plotGenes='',superImpose=False,\
 			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],dPixels=200,compareEx='',compareSm='',\
 			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=False,plotDomainTicks=True,triangularHeight=False,\
-			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,pair=False,domColors=[],oExtension='',geneLabels=True):
+			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,pair=False,domColors=[],oExtension='',geneLabels=True,dark=False):
 	
 	'''
     plot the interaction matrix with additional datasets
@@ -522,6 +522,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     
     verbose			(-v)		: print version and arguments into a file.
     tripleColumn	(-tri)		: a boolean if input file is from HiC-Pro pipeline.
+    dark			(-d)		: a boolean to use black background for the output.
     bedFile			(-bed)		: a file name for bin annotations, if -tri parameter is set.
     plotGenes		(-g)		: a sorted bed file for plotting the locations of the genes.
     geneLabels		(-gl)		: a boolean for plotting gene labels (1:default) or not (0).
@@ -530,6 +531,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     fillHist		(-fhist)	: a list whether each histogram will be filled (1) or not (0:default).
     histColors		(-hc)		: a list of hexadecimal number for histogram filling colors.
     histMax 		(-hm)		: a list of integer for maximum values of histograms.
+    superImpose		(-si)		: a boolean to overlap two histogram files inside the same track (default:0) enable(1).
     start			(-s)		: retain after x-th bin (0:default).
     end				(-e)		: continues until x-th bin (default: length of the matrix).
     resolution		(-r)		: resolution of the bins (default: 100000).
@@ -579,6 +581,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	
 	'''
 	
+	
 	numOfcols = len(files)
 	numOfrows = 4
 	if plotTriangular: numOfrows+=2
@@ -586,7 +589,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	if plotTadDomains: numOfrows+=1
 	if plotInsulation: numOfrows+=1
 	if epiLogos: numOfrows+=1
-	if len(histograms)>0: numOfrows+=len(histograms[0].split(','))
+	if len(histograms)>0 and not superImpose: numOfrows+=len(histograms[0].split(','))
+	if superImpose : numOfrows+=1
 	if len(barPlots)>0: numOfrows+=len(barPlots[0].split(','))
 	if len(tilePlots)>0: numOfrows+=len(tilePlots[0].split(','))
 	if len(arcPlots)>0: numOfrows+=len(arcPlots[0].split(','))
@@ -598,7 +602,9 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	
 	fig=plt.figure(figsize=(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5), facecolor='w', edgecolor='w')
 	fig.set_size_inches(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5)
-	fig.subplots_adjust(hspace=0.48,wspace=1.0)
+	if superImpose: fig.subplots_adjust(hspace=0.48,wspace=1.25)
+	else: fig.subplots_adjust(hspace=0.48,wspace=1.0)
+	if dark : plt.style.use('dark_background')
 	
 	ymaxlims = []
 	yminlims = []
@@ -790,6 +796,9 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax3.get_yaxis().set_label_coords(-0.125,0.5)
 			genes,trackCount,nearest = read_genes(plotGenes[0],resolution,chromosome,start,end)
 			plength = (end-start)*float(resolution)/1000000
+			
+			if dark : gcolor='white';icolor='white'
+			else: gcolor = '#3C3C8C';icolor='#0C0C78'
 						
 			for item in genes.keys():
 								
@@ -800,7 +809,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 					gestart = genes[item][3].split(',')
 					geend = genes[item][4].split(',')
 					
-					ax3.plot([gstart,gend],[trackCount-gtrack+0.125,trackCount-gtrack+0.125],'#0C0C78', linewidth=0.5, zorder = -1)
+					ax3.plot([gstart,gend],[trackCount-gtrack+0.125,trackCount-gtrack+0.125],color=icolor, linewidth=0.5, zorder = -1)
 					
 					arrow = 5
 					if genes[item][2]=='-': arrow=4
@@ -812,19 +821,19 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 							if len(genes[item])>5:
 								grect = Rectangle((float(gestart[exon])/resolution,trackCount-gtrack), (float(geend[exon])/resolution-float(gestart[exon])/resolution), 0.25, color=genes[item][5])
 							else:
-								grect = Rectangle((float(gestart[exon])/resolution,trackCount-gtrack), (float(geend[exon])/resolution-float(gestart[exon])/resolution), 0.25, color='#3C3C8C')
+								grect = Rectangle((float(gestart[exon])/resolution,trackCount-gtrack), (float(geend[exon])/resolution-float(gestart[exon])/resolution), 0.25, color=gcolor)
 						
 						
 							ax3.add_patch(grect)
 							if exon < len(geend)-2:
 								if (float(gestart[exon+1])/resolution-float(geend[exon])/resolution) > 0.5:
-									if genes[item][2]=='-': ax3.plot(float(gestart[exon])/resolution+(float(gestart[exon+1])/resolution-float(geend[exon])/resolution)/2-0.125,trackCount-gtrack+0.125, marker=arrow, color='#0C0C78', markersize=1.25)
-									else: ax3.plot(float(gestart[exon])/resolution+(float(gestart[exon+1])/resolution-float(geend[exon])/resolution)/2+0.125,trackCount-gtrack+0.125, marker=arrow, color='#0C0C78', markersize=1.25)					
+									if genes[item][2]=='-': ax3.plot(float(gestart[exon])/resolution+(float(gestart[exon+1])/resolution-float(geend[exon])/resolution)/2-0.125,trackCount-gtrack+0.125, marker=arrow, color=icolor, markersize=1.25)
+									else: ax3.plot(float(gestart[exon])/resolution+(float(gestart[exon+1])/resolution-float(geend[exon])/resolution)/2+0.125,trackCount-gtrack+0.125, marker=arrow, color=icolor, markersize=1.25)					
 												
 					else:
 							
 						if len(genes[item])>5: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color=genes[item][5])
-						else: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color='#3C3C8C')
+						else: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color=gcolor)
 						ax3.add_patch(rect)			
 								
 				else: # simple plotting
@@ -834,7 +843,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 					gtrack = genes[item][0]
 					
 					if len(genes[item])>5: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color=genes[item][5])
-					else: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color='#3C3C8C')
+					else: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color=gcolor)
 					ax3.add_patch(rect)
 									
  				
@@ -888,12 +897,93 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 		
 		''' Histogram plotting '''
 		
-		if len(histograms)>0: 
-			for x in range(0,len(histograms[0].split(','))):
+		if len(histograms)>0:
+			if not superImpose: # improve this part
+				for x in range(0,len(histograms[0].split(','))):
+					ax3 = plt.subplot2grid((numOfrows, 4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
+					ax3.get_yaxis().set_label_coords(-0.125,0.5)
+					x_comps,x_comps2,y_comps,colors,texts = read_bedGraph(histograms[exp].split(',')[x],resolution,chromosome)
+					
+					if dark: ax3.plot(x_comps,y_comps,color='white')
+					else: ax3.plot(x_comps,y_comps,color='black')
+					
+					if exp==0: 
+						ystart,yend = where(start,end,x_comps)
+						ymin = min(y_comps[ystart:yend])+ min(y_comps[ystart:yend])/10 if min(y_comps[ystart:yend]) < 0 else min(y_comps[ystart:yend])-min(y_comps[ystart:yend])/10
+						yminlims.append(ymin)
+						if len(histMax)==0:
+							ax3.set_ylim(ymin,max(y_comps[ystart:yend])+max(y_comps[ystart:yend])/10)
+							ymaxlims.append(max(y_comps[ystart:yend]))
+							#print ymin, max(y_comps[ystart:yend])+max(y_comps[ystart:yend])/10
+						else:
+							ax3.set_ylim(ymin,int(histMax[exp].split(',')[x])+int(histMax[exp].split(',')[x])/10)
+						ax3.set_ylabel(histLabels[exp].split(',')[x])
+					else:
+						if len(histMax)==0:
+							ax3.set_ylim(yminlims[x],ymaxlims[x]+ymaxlims[x]/10)
+						else:
+							ax3.set_ylim(ymin,int(histMax[exp].split(',')[x])+int(histMax[exp].split(',')[x])/10)
+			
+					ax3.locator_params(axis='y',tight=False, nbins=3)
+					ax3.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+			
+			
+					if len(fillHist) > 0 and int(fillHist[exp].split(',')[x])==1:
+						comps2=array(y_comps)
+						if len(histColors)>0:
+							if histColors[exp].split(',')[x] != '':
+								ax3.fill_between(x_comps, comps2,0, color='#'+histColors[exp].split(',')[x], interpolate=True)
+								if ymin < 0: 
+									with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2,0, comps2>0, color='#'+histColors[exp].split(',')[x], interpolate=True)
+									with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
+							else:
+								ax3.fill_between(x_comps, comps2,0, color='gray', interpolate=True)
+								if ymin < 0: 
+									with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2,0, comps2>0, color='gray', interpolate=True)
+									with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
+						else:
+							ax3.fill_between(x_comps, comps2,0, color='gray', interpolate=True)
+							if ymin < 0: 
+								with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2,0, comps2>0, color='gray', interpolate=True)
+								with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
+						
+					x_comps=[];x_comps2=[];y_comps=[];colors==[];	
+					if plotTadDomains and plotDomainTicks:
+						ax3.set_xticks(tricks, minor=True)
+						ax3.xaxis.grid(True,which='minor')
+			
+					if h_start > 0:
+						for item in range(0,len(h_start)):
+							ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+			
+					if spine > 0:
+						ax3.spines['right'].set_visible(False)
+						ax3.spines['top'].set_visible(False)
+						ax3.xaxis.set_ticks_position('bottom')
+						ax3.yaxis.set_ticks_position('left')
+			
+					rowcounter+=1
+				
+			else:
+				
+				hfirst = histograms[exp].split(',')[0]
+				hsecond = histograms[exp].split(',')[1]
+				
 				ax3 = plt.subplot2grid((numOfrows, 4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
 				ax3.get_yaxis().set_label_coords(-0.125,0.5)
-				x_comps,x_comps2,y_comps,colors,texts = read_bedGraph(histograms[exp].split(',')[x],resolution,chromosome)
-				ax3.plot(x_comps,y_comps,color='black')
+					
+				x_comps,x_comps2,y_comps,colors,texts = read_bedGraph(hfirst,resolution,chromosome)
+				
+				if dark : firstcolor='white'
+				else: firstcolor = 'black'
+				
+				if len(histColors)>0:
+					if histColors[exp].split(',')[0] != '': ax3.plot(x_comps,y_comps,color='#'+histColors[exp].split(',')[0],alpha=0.5);firstcolor='#'+histColors[exp].split(',')[0]
+				elif dark: x3.plot(x_comps,y_comps,color='white',alpha=0.5)
+				else: ax3.plot(x_comps,y_comps,color='black',alpha=0.5)
+				
+				ax3.tick_params(axis='y', colors=firstcolor)
+				
 				if exp==0: 
 					ystart,yend = where(start,end,x_comps)
 					ymin = min(y_comps[ystart:yend])+ min(y_comps[ystart:yend])/10 if min(y_comps[ystart:yend]) < 0 else min(y_comps[ystart:yend])-min(y_comps[ystart:yend])/10
@@ -901,27 +991,23 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 					if len(histMax)==0:
 						ax3.set_ylim(ymin,max(y_comps[ystart:yend])+max(y_comps[ystart:yend])/10)
 						ymaxlims.append(max(y_comps[ystart:yend]))
-						#print ymin, max(y_comps[ystart:yend])+max(y_comps[ystart:yend])/10
 					else:
-						ax3.set_ylim(ymin,int(histMax[exp].split(',')[x])+int(histMax[exp].split(',')[x])/10)
-					ax3.set_ylabel(histLabels[exp].split(',')[x])
+						ax3.set_ylim(ymin,int(histMax[exp].split(',')[0])+int(histMax[exp].split(',')[0])/10)
+					ax3.set_ylabel(histLabels[exp].split(',')[0],color=firstcolor)
 				else:
 					if len(histMax)==0:
-						ax3.set_ylim(yminlims[x],ymaxlims[x]+ymaxlims[x]/10)
+						ax3.set_ylim(yminlims[0],ymaxlims[0]+ymaxlims[0]/10)
 					else:
-						ax3.set_ylim(ymin,int(histMax[exp].split(',')[x])+int(histMax[exp].split(',')[x])/10)
-				
-				ax3.locator_params(axis='y',tight=False, nbins=3)
-				ax3.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+						ax3.set_ylim(ymin,int(histMax[exp].split(',')[0])+int(histMax[exp].split(',')[0])/10)
 				
 				
-				if len(fillHist) > 0 and int(fillHist[exp].split(',')[x])==1:
+				if len(fillHist) > 0 and int(fillHist[exp].split(',')[0])==1:
 					comps2=array(y_comps)
 					if len(histColors)>0:
-						if histColors[exp].split(',')[x] != '':
-							ax3.fill_between(x_comps, comps2,0, color='#'+histColors[exp].split(',')[x], interpolate=True)
+						if histColors[exp].split(',')[0] != '':
+							ax3.fill_between(x_comps, comps2,0, color='#'+histColors[exp].split(',')[0], interpolate=True)
 							if ymin < 0: 
-								with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2,0, comps2>0, color='#'+histColors[exp].split(',')[x], interpolate=True)
+								with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2,0, comps2>0, color='#'+histColors[exp].split(',')[0], interpolate=True)
 								with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
 						else:
 							ax3.fill_between(x_comps, comps2,0, color='gray', interpolate=True)
@@ -933,23 +1019,80 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 						if ymin < 0: 
 							with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2,0, comps2>0, color='gray', interpolate=True)
 							with np.errstate(all='ignore'):ax3.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
-							
+
+				
+				ax3.locator_params(axis='y',tight=False, nbins=3)
+				ax3.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+					
+				ax3a = ax3.twinx() # second plot
+				subcolor = 'red'
+				x_comps,x_comps2,y_comps,colors,texts = read_bedGraph(hsecond,resolution,chromosome)
+				if len(histColors)>0:
+					if histColors[exp].split(',')[1] != '': ax3a.plot(x_comps,y_comps,color='#'+histColors[exp].split(',')[1]); subcolor= '#'+histColors[exp].split(',')[1]
+				else: ax3a.plot(x_comps,y_comps,color='red')
+				
+				ax3a.patch.set_visible(False)
+				if exp==0: 
+					ystart,yend = where(start,end,x_comps)
+					ymin = min(y_comps[ystart:yend])+ min(y_comps[ystart:yend])/10 if min(y_comps[ystart:yend]) < 0 else min(y_comps[ystart:yend])-min(y_comps[ystart:yend])/10
+					yminlims.append(ymin)
+					if len(histMax)==0:
+						ax3a.set_ylim(ymin,max(y_comps[ystart:yend])+max(y_comps[ystart:yend])/10)
+						ymaxlims.append(max(y_comps[ystart:yend]))
+					else:
+						ax3a.set_ylim(ymin,int(histMax[exp].split(',')[1])+int(histMax[exp].split(',')[1])/10)
+					ax3a.text(int(start or 1)+length-length/6,max(y_comps[ystart:yend])-max(y_comps[ystart:yend])/10,histLabels[exp].split(',')[1],color=subcolor)
+					#ax3a.set_ylabel(histLabels[exp].split(',')[1])
+				else:
+					if len(histMax)==0:
+						ax3a.set_ylim(yminlims[1],ymaxlims[1]+ymaxlims[1]/10)
+					else:
+						ax3a.set_ylim(ymin,int(histMax[exp].split(',')[1])+int(histMax[exp].split(',')[1])/10)
+				
+				if len(fillHist) > 0 and int(fillHist[exp].split(',')[1])==1:
+					comps2=array(y_comps)
+					if len(histColors)>0:
+						if histColors[exp].split(',')[1] != '':
+							ax3a.fill_between(x_comps, comps2,0, color='#'+histColors[exp].split(',')[1], interpolate=True)
+							if ymin < 0: 
+								with np.errstate(all='ignore'):ax3a.fill_between(x_comps, comps2,0, comps2>0, color='#'+histColors[exp].split(',')[1], interpolate=True)
+								with np.errstate(all='ignore'):ax3a.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
+						else:
+							ax3.fill_between(x_comps, comps2,0, color='gray', interpolate=True)
+							if ymin < 0: 
+								with np.errstate(all='ignore'):ax3a.fill_between(x_comps, comps2,0, comps2>0, color='gray', interpolate=True)
+								with np.errstate(all='ignore'):ax3a.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
+					else:
+						ax3a.fill_between(x_comps, comps2,0, color='gray', interpolate=True)
+						if ymin < 0: 
+							with np.errstate(all='ignore'):ax3a.fill_between(x_comps, comps2,0, comps2>0, color='gray', interpolate=True)
+							with np.errstate(all='ignore'):ax3a.fill_between(x_comps, comps2, 0, where=comps2<0, color='black', interpolate=True)
+				
+				ax3a.locator_params(axis='y',tight=False, nbins=3)
+				ax3a.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+				ax3a.tick_params(axis='y', colors=subcolor)
 				x_comps=[];x_comps2=[];y_comps=[];colors==[];	
+				
 				if plotTadDomains and plotDomainTicks:
 					ax3.set_xticks(tricks, minor=True)
 					ax3.xaxis.grid(True,which='minor')
-				
+		
 				if h_start > 0:
 					for item in range(0,len(h_start)):
 						ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
-				
+		
 				if spine > 0:
 					ax3.spines['right'].set_visible(False)
 					ax3.spines['top'].set_visible(False)
 					ax3.xaxis.set_ticks_position('bottom')
 					ax3.yaxis.set_ticks_position('left')
-				
+					ax3a.spines['left'].set_visible(False)
+					ax3a.spines['top'].set_visible(False)
+					ax3a.xaxis.set_ticks_position('bottom')
+					ax3a.yaxis.set_ticks_position('right')
+
 				rowcounter+=1
+				
 			if numOfrows <= rowcounter and not randomBins: ax3.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
 			elif numOfrows <= rowcounter and randomBins: ax3.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
 		
@@ -1046,12 +1189,14 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				ax3.get_yaxis().set_label_coords(-0.125,0.5)
 				x_comps,x_comps2,y_comps,colors,texts = read_bedGraph(arcPlots[exp].split(',')[x],resolution,chromosome)
 				ymax = 0
+				
 				for item in range(0,len(x_comps)):
 				
 					center = x_comps[item]+(x_comps2[item]-x_comps[item])/2
 					rad = (x_comps2[item]-x_comps[item])/2
 					pts = get_ellipse_coords(a=rad, b=1.0, x=center, k=1./8)
-					if len(arcColors)==0 and len(colors)==0: ax3.plot(pts[:,0], pts[:,1],c='black')
+					if dark and len(arcColors)==0 and len(colors)==0: ax3.plot(pts[:,0], pts[:,1],c='#cecece')
+					elif len(arcColors)==0 and len(colors)==0: ax3.plot(pts[:,0], pts[:,1],c='black')
 					elif len(colors)>0: ax3.fill_between(pts[:,0], pts[:,1],0, color=colors[item], interpolate=True, alpha=0.35)
 					elif len(arcColors)>0: ax3.fill_between(pts[:,0], pts[:,1],0, color='#'+arcColors[exp].split(',')[x], interpolate=True, alpha=0.35)
 				
@@ -1130,10 +1275,12 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax4.set_ylim(0,ins_score)
 			ax4.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 			if not tripleColumn:
-				ax4.plot(range(0,len(nums)),nums,'black')
+				if dark: ax4.plot(range(0,len(nums)),nums,'white')
+				else: ax4.plot(range(0,len(nums)),nums,'black')
 				ax4.fill_between(range(0,len(nums)),nums,0,color='0.8')
 			else:
-				ax4.plot(np.arange(start,end),nums,'black')
+				if dark: ax4.plot(np.arange(start,end),nums,'white')
+				else: ax4.plot(np.arange(start,end),nums,'black')
 				ax4.fill_between(np.arange(start,end),nums,0,color='0.8')
 				
 			if plotTadDomains and plotDomainTicks:
@@ -1426,7 +1573,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 
 	# Single comparisons
 	if compare and not pair:
-		
+		crowcounter = 4
 		if len(compareSm)>0 :
 		
 			slow = int(compareSm.split(',')[0])
@@ -1486,7 +1633,149 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,1) 
 			ax1.set_xticklabels(ticks)
 			ax1.set_yticklabels(ticks)
+		
+		if plotTriangular: 
+			
+			ax2 = plt.subplot2grid((numOfrows, 4*len(files)), (crowcounter, (exp+1)*4), rowspan=2,colspan=4,sharex=ax1)
+			dst=ndimage.rotate(matrix,45,order=0,reshape=True,prefilter=False,cval=0)
+			matrix=[];
+			if not triangularHeight: height=length/5
+			else: 
+				if triangularHeight <= length: height = triangularHeight
+				else: height = length/2
+			
+			ax2.set_ylim(start+length/2,start+length/2+height)
+			ax2.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+			ax2.set(adjustable='box-forced')
+			with np.errstate(divide='ignore'): img=ax2.imshow(log2(dst),cmap=plt.get_cmap("bwr"),origin="lower",interpolation="nearest",extent=(int(start or 1) - 0.5,\
+														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
+			dst=[];
+			if len(compareEx)>0 : clow = int(compareEx.split(',')[0])*-1;chigh=int(compareEx.split(',')[1]);img.set_clim([clow,chigh])
+			else: img.set_clim([-4,4])
+
+			plt.setp(ax2.get_yticklabels(), visible=False)
+			if exp==0: ax2.set_ylabel('Triangular')
+			ax2.get_yaxis().set_label_coords(-0.125,0.5)
+			if plotTadDomains and plotDomainTicks:
+				ax2.set_xticks(tricks, minor=True)
+				ax2.xaxis.grid(True,which='minor',linewidth=2)
+			crowcounter+=2
+			if numOfrows <= crowcounter and not randomBins: ax2.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
+			elif numOfrows <= crowcounter and randomBins: ax2.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
+			
+			if h_start > 0:
+				for item in range(0,len(h_start)):
+					ax2.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+			
+			ax2.spines['right'].set_visible(False)
+			ax2.spines['top'].set_visible(False)
+			ax2.spines['left'].set_visible(False)
+			ax2.xaxis.set_ticks_position('bottom')
+			plt.gca().yaxis.set_major_locator(plt.NullLocator())
+		
+		if len(plotGenes) > 0:
+		
+			ax3 = plt.subplot2grid((numOfrows, 4*len(files)), (crowcounter, (exp+1)*4), rowspan=2,colspan=4,sharex=ax1)
+			if exp==0: ax3.set_ylabel('Genes')
+			ax3.get_yaxis().set_label_coords(-0.125,0.5)
+			genes,trackCount,nearest = read_genes(plotGenes[0],resolution,chromosome,start,end)
+			plength = (end-start)*float(resolution)/1000000
+						
+			for item in genes.keys():
+								
+				if len(genes[item])>2: #plot with introns
+					gstart = float(item.split('-')[0])/resolution
+					gend = float(item.split('-')[1])/resolution
+					gtrack = genes[item][0]
+					gestart = genes[item][3].split(',')
+					geend = genes[item][4].split(',')
+					
+					ax3.plot([gstart,gend],[trackCount-gtrack+0.125,trackCount-gtrack+0.125],color=icolor, linewidth=0.5, zorder = -1)
+					
+					arrow = 5
+					if genes[item][2]=='-': arrow=4
+					
+					if plength <= 30:
+					
+						for exon in range(0,len(geend)-1):
+						
+							if len(genes[item])>5:
+								grect = Rectangle((float(gestart[exon])/resolution,trackCount-gtrack), (float(geend[exon])/resolution-float(gestart[exon])/resolution), 0.25, color=genes[item][5])
+							else:
+								grect = Rectangle((float(gestart[exon])/resolution,trackCount-gtrack), (float(geend[exon])/resolution-float(gestart[exon])/resolution), 0.25, color=gcolor)
+						
+						
+							ax3.add_patch(grect)
+							if exon < len(geend)-2:
+								if (float(gestart[exon+1])/resolution-float(geend[exon])/resolution) > 0.5:
+									if genes[item][2]=='-': ax3.plot(float(gestart[exon])/resolution+(float(gestart[exon+1])/resolution-float(geend[exon])/resolution)/2-0.125,trackCount-gtrack+0.125, marker=arrow, color=icolor, markersize=1.25)
+									else: ax3.plot(float(gestart[exon])/resolution+(float(gestart[exon+1])/resolution-float(geend[exon])/resolution)/2+0.125,trackCount-gtrack+0.125, marker=arrow, color=icolor, markersize=1.25)					
+												
+					else:
+							
+						if len(genes[item])>5: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color=genes[item][5])
+						else: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color=gcolor)
+						ax3.add_patch(rect)			
+								
+				else: # simple plotting
+										
+					gstart = float(item.split('-')[0])/resolution
+					gend = float(item.split('-')[1])/resolution
+					gtrack = genes[item][0]
+					
+					if len(genes[item])>5: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color=genes[item][5])
+					else: rect = Rectangle((gstart,trackCount-gtrack), (gend-gstart), 0.25, color=gcolor)
+					ax3.add_patch(rect)
+									
+ 				
+ 				if plength <= 30 and geneLabels: # also consider the gene density
+					
+					#optimize the font size	
+ 				
+ 					gindex = nearest[gtrack].index(int(item.split('-')[1]))
+ 					upgene = nearest[gtrack][gindex-1]
+ 					if gindex < len(nearest[gtrack])-1: downgene = nearest[gtrack][gindex+1] 
+ 					else: downgene = upgene
+ 
+					if plength <= 2 or plength < 1: plength=1
+					elif plength <= 4: plength = 2
+					else : plength/1.5
+					gdist = min(abs(nearest[gtrack][gindex]-upgene),abs(nearest[gtrack][gindex]-downgene))
+					if len(nearest[gtrack])==1: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=4.5/plength)
+					elif float(gdist)/resolution >= 2 and len(genes[item][1])<=6: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=4.5/plength)
+					elif float(gdist)/resolution >= 2 and len(genes[item][1])>6: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=3/plength)
+					elif float(gdist)/resolution < 2 and float(gdist)/resolution > 1 and len(genes[item][1])<=6: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=2.5/plength)
+					elif float(gdist)/resolution < 2 and float(gdist)/resolution >1 and len(genes[item][1])>6: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=2/plength)
+					elif float(gdist)/resolution <= 1 and float(gdist)/resolution >= 0.25: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=1.8)
+					else: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=1)
+				
+					#if lblstndrd == 1:
+ 						#if len(genes[item][1])>5: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=0.5)
+ 						#else : ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=3)	
+			
+			ax3.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+			ax3.set_ylim(0,trackCount+1)
+			plt.setp(ax3.get_yticklabels(), visible=False)
+			if plotTadDomains and plotDomainTicks:
+				ax3.set_xticks(tricks, minor=True)
+				ax3.xaxis.grid(True,which='minor')
+			
+			if h_start > 0:
+				for item in range(0,len(h_start)):
+					ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+			
+			ax3.spines['right'].set_visible(False)
+			ax3.spines['left'].set_visible(False)
+			ax3.spines['top'].set_visible(False)
+			ax3.tick_params(left="off")
+			ax3.tick_params(right="off")
+			ax3.xaxis.set_ticks_position('bottom')
+						
+			crowcounter+=2
+			if numOfrows <= crowcounter and not randomBins: ax3.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
+			elif numOfrows <= crowcounter and randomBins: ax3.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
 	
+			
 	# Pair-wise comparisons
 	if compare and pair:
 		
@@ -1611,6 +1900,7 @@ if __name__=='__main__':
 	group1 = parser.add_argument_group("Optional Parameters")
 	group1.add_argument('-h', '--help', action="help")
 	group1.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true",default=False)
+	group1.add_argument('-d', '--dark',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-tri', '--tripleColumn',default=False,type=int,metavar='',help='default:0 - enable with 1')
 	group1.add_argument('-bed', '--bedFile',default='',metavar='',help='')
 	group1.add_argument('-hist', '--histograms', nargs='+',metavar='',default=[])
@@ -1618,6 +1908,7 @@ if __name__=='__main__':
 	group1.add_argument('-hm', '--histMax', nargs='+',metavar='',default=[])
 	group1.add_argument('-fhist', '--fillHist', nargs='+',metavar='',default=[],help='(0:no, 1:yes)')
 	group1.add_argument('-hc', '--histColors', nargs='+',metavar='',default=[])
+	group1.add_argument('-si', '--superImpose',metavar='',type=int,default=False,help="default: 0 - enable with 1")
 	group1.add_argument('-b', '--barPlots', nargs='+',metavar='',default=[])
 	group1.add_argument('-bl', '--barLabels', nargs='+',metavar='',default=[])
 	group1.add_argument('-bc', '--barColors', nargs='+',metavar='',default=[])
@@ -1680,6 +1971,10 @@ if __name__=='__main__':
 	if len(args['histLabels'])>0 and len(args['histLabels'])!=len(args['files']):
 		print >>sys.stderr, 'Upps!! Please provide equal number of HiC matrix and BedGraph Labels'
 		raise SystemExit
+	if len(args['histograms'])>0:
+		if len(args['histograms'][0].split(','))>2 and args['superImpose']:
+			print >>sys.stderr, 'Upps!! Please use super impose (-si) only with 2 histogram files per condition'
+			raise SystemExit
 	if len(args['histograms'])+len(args['histLabels'])+len(args['fillHist'])>0 and len(args['histLabels'])!=len(args['histograms']) and len(args['histLabels'])!=len(args['fillHist']):
 		print >>sys.stderr, 'Upps!! Please provide equal number of BedGraphs, BedGraph Labels and FillUnders (0:no, 1:yes)'
 		raise SystemExit

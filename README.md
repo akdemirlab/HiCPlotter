@@ -55,6 +55,7 @@ _For reading more about each parameter, please check the [manual](HiCPlotterManu
     
     verbose			(-v)		: print version and arguments into a file.
     tripleColumn	(-tri)		: a boolean if input file is from HiC-Pro pipeline.
+    dark			(-d)		: a boolean to use black background for the output.
     bedFile			(-bed)		: a file name for bin annotations, if -tri parameter is set.
     plotGenes		(-g)		: a sorted bed file for plotting the locations of the genes.
     geneLabels		(-gl)		: a boolean for plotting gene labels (1:default) or not (0).
@@ -63,6 +64,7 @@ _For reading more about each parameter, please check the [manual](HiCPlotterManu
     fillHist		(-fhist)	: a list whether each histogram will be filled (1) or not (0:default).
     histColors		(-hc)		: a list of hexadecimal numbers for histogram filling colors.
     histMax 		(-hm)		: a list of integer for maximum values of histograms.
+    superImpose		(-si)		: a boolean to overlap two histogram files inside the same track (default:0) enable(1).
     start			(-s)		: retain after x-th bin (0:default).
     end				(-e)		: continues until x-th bin (default: length of the matrix).
     resolution		(-r)		: resolution of the bins (default: 100000).
@@ -408,7 +410,7 @@ _Data taken from:_ Hi-C : [Seitan et, al. Genome Research 2014](http://genome.cs
 
 ### Whole genome plotting with triple sparse files
 
-_(-chr) parameter will be used designate to the end chromosome, such as (-chr chr11) will plot interactions starting from chr1 to chr11._ 
+_(-chr) parameter will be used designate the end chromosome, such as (-chr chr11) will plot interactions starting from chr1 to chr11._ 
 
 _Please use (-chr chrY) for whole genome interaction plots._
 
