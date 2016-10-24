@@ -27,7 +27,7 @@ import bisect
 import warnings
 import logging
 
-version = "0.7.0"
+version = "0.7.1"
 
 def read_HiCdata(filename,header=0,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -504,7 +504,7 @@ def insulation(matrix,w=5,tadRange=10,triple=False,mstart=0):
 	return scores, pBorders
 
 def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],plotGenes='',superImpose=False,\
-			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],dPixels=200,compareEx='',compareSm='',\
+			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],dPixels=200,compareEx='',compareSm='',upSide=False,\
 			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=False,plotDomainTicks=True,triangularHeight=False,\
 			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,pair=False,domColors=[],oExtension='',geneLabels=True,dark=False):
 	
@@ -581,6 +581,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	
 	'''
 	
+	orientation = 'lower'
+	if upSide : orientation = 'upper'
 	
 	numOfcols = len(files)
 	numOfrows = 4
@@ -673,15 +675,15 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			
 		if not wholeGenome:
 			if heatmapColor < 5:
-				with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=plt.get_cmap(cmaps[heatmapColor]),origin="lower",interpolation="nearest",extent=(int(start or 1) - 0.5,\
+				with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=plt.get_cmap(cmaps[heatmapColor]),origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
 														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
 			elif heatmapColor == 3:
 				cmap = plt.get_cmap(cmaps[heatmapColor])
 				cmap.set_over('black')
-				with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=cmap,origin="lower",interpolation="nearest",extent=(int(start or 1) - 0.5,\
+				with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=cmap,origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
 														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
 			else:
-				with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),origin="lower",interpolation="nearest",extent=(int(start or 1) - 0.5,\
+				with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
 														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
 		else:
 			if heatmapColor < 5:
@@ -690,7 +692,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			elif heatmapColor == 3:
 				cmap = plt.get_cmap(cmaps[heatmapColor])
 				cmap.set_over('black')
-				with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=cmap,origin="lower",interpolation="nearest",extent=(int(start or 1) - 0.5,\
+				with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=cmap,origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
 														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
 			else:
 				with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),interpolation="nearest",extent=(int(start or 1) - 0.5,\
@@ -754,10 +756,10 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax2.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 			ax2.set(adjustable='box-forced')
 			if heatmapColor < 5:
-				with np.errstate(divide='ignore'): img=ax2.imshow(log2(dst),origin="lower",cmap=plt.get_cmap(cmaps[heatmapColor]),interpolation="nearest",extent=(int(start or 1) - 0.5,\
+				with np.errstate(divide='ignore'): img=ax2.imshow(log2(dst),origin=orientation,cmap=plt.get_cmap(cmaps[heatmapColor]),interpolation="nearest",extent=(int(start or 1) - 0.5,\
 															  	  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
 			else:
-				with np.errstate(divide='ignore'): img=ax2.imshow(log2(dst),origin="lower",interpolation="nearest",extent=(int(start or 1) - 0.5,\
+				with np.errstate(divide='ignore'): img=ax2.imshow(log2(dst),origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
 															  	  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
 			dst=[];
 			img.set_clim([0,cmatrix-1])
@@ -1570,6 +1572,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,1) 
 			ax1.set_xticklabels(ticks)
 			ax1.set_yticklabels(ticks)
+			if upSide: ax1.set_yticklabels([])
 
 	# Single comparisons
 	if compare and not pair:
@@ -1584,7 +1587,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 		with np.errstate(divide='ignore',invalid='ignore'): matrix=matrix1/matrix2
 		#matrix[np.logical_and(matrix>=0.5, matrix<=1)]=1
 		ax1 = plt.subplot2grid((numOfrows, 4*len(files)), (0, (exp+1)*4), rowspan=4,colspan=4)
-		with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=plt.get_cmap("bwr"),origin="lower",interpolation="nearest",extent=(int(start or 1) - 0.5,\
+		with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=plt.get_cmap("bwr"),origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
 														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
 		
 		ax1.set_ylim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
@@ -1633,7 +1636,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,1) 
 			ax1.set_xticklabels(ticks)
 			ax1.set_yticklabels(ticks)
-		
+			if upSide: ax1.set_yticklabels([])
+			
 		if plotTriangular: 
 			
 			ax2 = plt.subplot2grid((numOfrows, 4*len(files)), (crowcounter, (exp+1)*4), rowspan=2,colspan=4,sharex=ax1)
@@ -1647,7 +1651,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax2.set_ylim(start+length/2,start+length/2+height)
 			ax2.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
 			ax2.set(adjustable='box-forced')
-			with np.errstate(divide='ignore'): img=ax2.imshow(log2(dst),cmap=plt.get_cmap("bwr"),origin="lower",interpolation="nearest",extent=(int(start or 1) - 0.5,\
+			with np.errstate(divide='ignore'): img=ax2.imshow(log2(dst),cmap=plt.get_cmap("bwr"),origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
 														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
 			dst=[];
 			if len(compareEx)>0 : clow = int(compareEx.split(',')[0])*-1;chigh=int(compareEx.split(',')[1]);img.set_clim([clow,chigh])
@@ -1807,7 +1811,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 					with np.errstate(divide='ignore',invalid='ignore'): matrix=matrix1/matrix2
 					
 					pax1 = plt.subplot2grid((numOfrows, 4*len(files)), (prowcounter, peer1*4), rowspan=4,colspan=4,sharex=ax1)
-					with np.errstate(divide='ignore'): img=pax1.imshow(log2(matrix),cmap=plt.get_cmap("bwr"),origin="lower",interpolation="nearest",extent=(int(start or 1) - 0.5,\
+					with np.errstate(divide='ignore'): img=pax1.imshow(log2(matrix),cmap=plt.get_cmap("bwr"),origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
 																			  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
 		
 					pax1.set_ylim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
@@ -1856,7 +1860,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 							for item in range(0,len(ticks)): ticks[item]=round(ticks[item]*resolution/1000000,1) 
 						pax1.set_xticklabels(ticks)
 						pax1.set_yticklabels(ticks)
-						
+						if upSide: pax1.set_yticklabels([])
 					
 	if len(oExtension) > 0 and oExtension in plt.gcf().canvas.get_supported_filetypes().keys(): extension='.'+oExtension
 	elif 'JPEG' in plt.gcf().canvas.get_supported_filetypes_grouped().keys() or 'Joint Photographic Experts Group' in plt.gcf().canvas.get_supported_filetypes_grouped().keys(): extension='.jpeg'
@@ -1900,8 +1904,9 @@ if __name__=='__main__':
 	group1 = parser.add_argument_group("Optional Parameters")
 	group1.add_argument('-h', '--help', action="help")
 	group1.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true",default=False)
-	group1.add_argument('-d', '--dark',type=int,default=False,metavar='',help="default: 0 - enable with 1")
+	group1.add_argument('-da', '--dark',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-tri', '--tripleColumn',default=False,type=int,metavar='',help='default:0 - enable with 1')
+	group1.add_argument('-up', '--upSide',default=False,type=int,metavar='',help='default:0 - enable with 1')
 	group1.add_argument('-bed', '--bedFile',default='',metavar='',help='')
 	group1.add_argument('-hist', '--histograms', nargs='+',metavar='',default=[])
 	group1.add_argument('-hl', '--histLabels', nargs='+',metavar='',default=[])

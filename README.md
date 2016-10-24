@@ -8,6 +8,10 @@ If you use HiCPlotter in your studies, please cite our publication in Genome Bio
 
 _HiCPlotter is designed by Kadir Akdemir (kcakedemir at mdanderson dot org / find me on [Twitter](https://twitter.com/kcakdemir)) while in Lynda Chin's Lab at the University of Texas MD Anderson Cancer Center, Houston, TX, USA._
 
+<figure>
+  <img src="examplePlots/TOX3-chr16.ofBins(1940-2156).25K.jpeg" alt="Example plot from HiCPlotter">
+</figure>
+
 # Requirements
 
 Python 2.7.*
@@ -55,7 +59,7 @@ _For reading more about each parameter, please check the [manual](HiCPlotterManu
     
     verbose			(-v)		: print version and arguments into a file.
     tripleColumn	(-tri)		: a boolean if input file is from HiC-Pro pipeline.
-    dark			(-d)		: a boolean to use black background for the output.
+    dark			(-da)		: a boolean to use black background for the output.
     bedFile			(-bed)		: a file name for bin annotations, if -tri parameter is set.
     plotGenes		(-g)		: a sorted bed file for plotting the locations of the genes.
     geneLabels		(-gl)		: a boolean for plotting gene labels (1:default) or not (0).
