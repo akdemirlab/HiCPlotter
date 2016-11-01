@@ -981,7 +981,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				
 				if len(histColors)>0:
 					if histColors[exp].split(',')[0] != '': ax3.plot(x_comps,y_comps,color='#'+histColors[exp].split(',')[0],alpha=0.5);firstcolor='#'+histColors[exp].split(',')[0]
-				elif dark: x3.plot(x_comps,y_comps,color='white',alpha=0.5)
+				elif dark: ax3.plot(x_comps,y_comps,color='white',alpha=0.5)
 				else: ax3.plot(x_comps,y_comps,color='black',alpha=0.5)
 				
 				ax3.tick_params(axis='y', colors=firstcolor)
