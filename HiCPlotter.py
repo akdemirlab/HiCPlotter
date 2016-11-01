@@ -1584,7 +1584,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			matrix1[(matrix1>=slow) & (matrix1<=shigh)]=1
 			matrix2[(matrix2>=slow) & (matrix2<=shigh)]=1
 
-		with np.errstate(divide='ignore',invalid='ignore'): matrix=matrix1/matrix2
+		with np.errstate(divide='ignore',invalid='ignore'): matrix=matrix1/(matrix2*1.0)
 		#matrix[np.logical_and(matrix>=0.5, matrix<=1)]=1
 		ax1 = plt.subplot2grid((numOfrows, 4*len(files)), (0, (exp+1)*4), rowspan=4,colspan=4)
 		with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=plt.get_cmap("bwr"),origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
@@ -1808,7 +1808,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 						matrix2[(matrix2>=slow) & (matrix2<=shigh)]=1
 					
 
-					with np.errstate(divide='ignore',invalid='ignore'): matrix=matrix1/matrix2
+					with np.errstate(divide='ignore',invalid='ignore'): matrix=matrix1/(matrix2*1.0)
 					
 					pax1 = plt.subplot2grid((numOfrows, 4*len(files)), (prowcounter, peer1*4), rowspan=4,colspan=4,sharex=ax1)
 					with np.errstate(divide='ignore'): img=pax1.imshow(log2(matrix),cmap=plt.get_cmap("bwr"),origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
