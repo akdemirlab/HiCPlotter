@@ -635,10 +635,10 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			if start > len(matrix): start = 0
 			size=end-start
 			if exp == 0 : mlength = len(matrix)
-# 			elif len(matrix) != mlength and not randomBins:
-# 				print len(matrix), mlength
-# 				print >>sys.stderr, 'unbalanced matrix size of '+files[exp]+' compared to '+files[0]+' ! matrix sizes should be equal'
-# 				raise SystemExit
+			elif len(matrix) != mlength and not randomBins:
+				print len(matrix), mlength
+				print >>sys.stderr, 'unbalanced matrix size of '+files[exp]+' compared to '+files[0]+' ! matrix sizes should be equal'
+				raise SystemExit
 			
 			matrix=matrix[start:end,start:end]
 		else:
