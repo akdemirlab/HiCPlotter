@@ -205,12 +205,14 @@ For annotating the interaction matrix, HiCPlotter requires the following format.
 For plotting genes under the interaction matrix, HiCPlotter requires the following format.
 	
 	
-	chrom  geneStart  geneEnd	geneName	strand(optional)	exonStarts(optional)	exonEnds(optional)	color (optional)
-	chr1	11873		 14409	DDX11L1		+					11873,12645,13220,		12227,12697,14409,	250,13,27
+	chrom  geneStart  geneEnd	geneName	strand(optional)	exonStarts(optional)	exonEnds(optional)	color (optional)	fontSize (optional)
+	chr1	11873		 14409	DDX11L1		+					11873,12645,13220,		12227,12697,14409,	250,13,27			15
 	chr1	14361		 16765	WASH7P		-					14361,14969,15795,16606,		14829,15038,15942,16765,
 	chr1	14361		 19759	WASH7P		-					14361,14969,15795,16606,16857,17232,17605,17914,18267,18912,		14829,15038,15947,16765,17055,17368,17742,18061,18366,19759,
 
 This file should be sorted based on 2nd column (geneStart).
+
+To specify specific gene label size, provide an integer at column 9 (a color should be provided at column 8th)
 
 For 6th (exonStarts) and 7th (exonEnds) columns, there should be a comma at the very end.
 

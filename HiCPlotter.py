@@ -378,6 +378,8 @@ def read_genes(filename,resolution,chromosome,start,end):
 							if len(tags)>7:
 								hex = '#%02x%02x%02x' % (int(tags[7].split(',')[0]), int(tags[7].split(',')[1]), int(tags[7].split(',')[2]))
 								genes[tags[1]+'-'+tags[2]].append(hex)
+								if len(tags)>8:
+									genes[tags[1]+'-'+tags[2]].append(float(tags[8]))
 								
 					prev_start = current_start
 							
@@ -633,10 +635,10 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			if start > len(matrix): start = 0
 			size=end-start
 			if exp == 0 : mlength = len(matrix)
-			elif len(matrix) != mlength and not randomBins:
-				print len(matrix), mlength
-				print >>sys.stderr, 'unbalanced matrix size of '+files[exp]+' compared to '+files[0]+' ! matrix sizes should be equal'
-				raise SystemExit
+# 			elif len(matrix) != mlength and not randomBins:
+# 				print len(matrix), mlength
+# 				print >>sys.stderr, 'unbalanced matrix size of '+files[exp]+' compared to '+files[0]+' ! matrix sizes should be equal'
+# 				raise SystemExit
 			
 			matrix=matrix[start:end,start:end]
 		else:
@@ -862,7 +864,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 					elif plength <= 4: plength = 2
 					else : plength/1.5
 					gdist = min(abs(nearest[gtrack][gindex]-upgene),abs(nearest[gtrack][gindex]-downgene))
-					if len(nearest[gtrack])==1: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=4.5/plength)
+					if len(genes[item]) > 6: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=genes[item][6], color=genes[item][5])
+					elif len(nearest[gtrack])==1: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=4.5/plength)
 					elif float(gdist)/resolution >= 2 and len(genes[item][1])<=6: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=4.5/plength)
 					elif float(gdist)/resolution >= 2 and len(genes[item][1])>6: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=3/plength)
 					elif float(gdist)/resolution < 2 and float(gdist)/resolution > 1 and len(genes[item][1])<=6: ax3.text(gstart, trackCount-gtrack+0.5, genes[item][1], fontsize=2.5/plength)
@@ -1041,9 +1044,10 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 					if len(histMax)==0:
 						ax3a.set_ylim(ymin,max(y_comps[ystart:yend])+max(y_comps[ystart:yend])/10)
 						ymaxlims.append(max(y_comps[ystart:yend]))
+						ax3a.text(int(start or 1)+length-length/6,max(y_comps[ystart:yend])-max(y_comps[ystart:yend])/10,histLabels[exp].split(',')[1],color=subcolor)
 					else:
 						ax3a.set_ylim(ymin,int(histMax[exp].split(',')[1])+int(histMax[exp].split(',')[1])/10)
-					ax3a.text(int(start or 1)+length-length/6,max(y_comps[ystart:yend])-max(y_comps[ystart:yend])/10,histLabels[exp].split(',')[1],color=subcolor)
+						ax3a.text(int(start or 1)+length-length/6,int(histMax[exp].split(',')[1])-int(histMax[exp].split(',')[1])/10,histLabels[exp].split(',')[1],color=subcolor)
 					#ax3a.set_ylabel(histLabels[exp].split(',')[1])
 				else:
 					if len(histMax)==0:
