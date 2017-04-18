@@ -27,7 +27,7 @@ import bisect
 import warnings
 import logging
 
-version = "0.7.1"
+version = "0.7.3 - anchor/lateral"
 
 def read_HiCdata(filename,header=0,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -69,7 +69,7 @@ def read_HiCdata(filename,header=0,footer=0,clean_nans=True,smooth_noise=0.5,ins
 	return matrix,nums,tricks
 
 
-def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,wholeGenome=False,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
+def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,wholeGenome=False,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False,anchor=0):
 						
 	'''
     load Hi-C interaction matrix from triple-column sparse file
@@ -96,7 +96,7 @@ def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,wholeGenome=F
 	
 	
 	chromosomes = {}
-	
+	fourClike = []
 	try:
 		bed = open(bedFile,'r') 
 	except IOError:
@@ -143,12 +143,13 @@ def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,wholeGenome=F
 		if int(tags[0]) > end: break
 	
 	matrix = mtx.todense()
-	
+	if anchor > 0:
+		for element in range(0,len(matrix)-1): fourClike.append(matrix[anchor-startBin,element])
 	if plotInsulation or plotTadDomains and not wholeGenome: nums,tricks=insulation(matrix,ins_window,rel_window,True,startBin)
 	else: nums=[];tricks=[];
 	
 	#matrix[matrix<smooth_noise]=0
-	return matrix,nums,tricks,clast-chromosomes[chromosome][0]+1
+	return matrix,nums,tricks,clast-chromosomes[chromosome][0]+1,fourClike
 
 def read_bedGraph(filename,resolution,chromosome): # add stopping after certain chromosome passed
 	
@@ -410,7 +411,7 @@ def get_ellipse_coords(a=0.0, b=0.0, x=0.0, y=0.0, angle=0.0, k=2):
         
     this function is obtained from : http://scipy-central.org/item/23/2/plot-an-ellipse
     """
-    pts = np.zeros((360*k+1, 2))
+    pts = np.zeros((int(360*k+1), 2))
 
     beta = -angle * np.pi/180.0
     sin_beta = np.sin(beta)
@@ -505,10 +506,10 @@ def insulation(matrix,w=5,tadRange=10,triple=False,mstart=0):
 	
 	return scores, pBorders
 
-def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],plotGenes='',superImpose=False,\
+def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],plotGenes='',superImpose=False,anchor=0,anchorMax=0,\
 			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],dPixels=200,compareEx='',compareSm='',upSide=False,\
 			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=False,plotDomainTicks=True,triangularHeight=False,\
-			highlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,pair=False,domColors=[],oExtension='',geneLabels=True,dark=False):
+			highlights=0,lHighlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,pair=False,domColors=[],oExtension='',geneLabels=True,dark=False):
 	
 	'''
     plot the interaction matrix with additional datasets
@@ -549,7 +550,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     arcPlots		(-a)		: a list of filenames to be plotted as arc plots.
     arcLabels		(-al)		: a list of labels for the arc plots.
     arcColors		(-ac)		: a list of hexadecimal numbers for coloring the arc plots.
-    highlights		(-high)		: a boolean for enabling highlights on the plot (0:default), enable(1). 
+    highlights		(-high)		: a boolean for enabling vertical highlights on the plot (0:default), enable(1).
+    lHighlights		(-lhigh)	: a boolean for enabling lateral highlights on the plot (0:default), enable(1).  
     highFile		(-hf)		: a file name for a bed file to highlight selected intervals.
     peakFiles 		(-peak)		: a list of filenames to be plotted on the matrix.
     epiLogos 		(-ep)		: a filename to be plotted as Epilogos format.
@@ -588,6 +590,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	
 	numOfcols = len(files)
 	numOfrows = 4
+	if anchor > 0: numOfrows+=1
 	if plotTriangular: numOfrows+=2
 	if len(plotGenes)>0: numOfrows+=2
 	if plotTadDomains: numOfrows+=1
@@ -620,7 +623,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	h_start = []
 	h_end = []
 	
-	if highlights:
+	if highlights or lHighlights:
 		h_start,h_end,_,_,_ = read_bedGraph(highFile,resolution,chromosome)
 	
 	rlength = len(files)-1 if compare and not pair else len(files)
@@ -639,13 +642,15 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				print len(matrix), mlength
 				print >>sys.stderr, 'unbalanced matrix size of '+files[exp]+' compared to '+files[0]+' ! matrix sizes should be equal'
 				raise SystemExit
-			
+			fourClike = []
+			for element in range(0,len(matrix)):
+				fourClike.append(matrix[anchor,element])
 			matrix=matrix[start:end,start:end]
 		else:
 			if bedFile == '':
 				print >>sys.stderr, 'an annotation bed file is required for triple-column sparse input.'
 				raise SystemExit
-			matrix,nums,tricks,clength=read_sparseHiCdata(files[exp],chromosome,bedFile,start,end,wholeGenome,smoothNoise,window,tadRange,plotInsulation,plotTadDomains,randomBins)
+			matrix,nums,tricks,clength,fourClike=read_sparseHiCdata(files[exp],chromosome,bedFile,start,end,wholeGenome,smoothNoise,window,tadRange,plotInsulation,plotTadDomains,randomBins,anchor)
 			if end > clength: end=clength
 			if start > clength: start = 0
 			end=clength if end == 0 else end
@@ -665,7 +670,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			if not randomBins and not wholeGenome: ax1.set_ylabel('log2(interaction matrix) - %s Mb (resolution: %sKb)' % (chromosome , resolution/1000))
 			elif randomBins: ax1.set_ylabel('log2(interaction matrix) - %s (Genomic Bins)' % (chromosome))
 			elif wholeGenome: ax1.set_ylabel('')
-			cmatrix = log2(pow(2, ceil(log2(max(matrix))/log2(2))))
+			with np.errstate(divide='ignore'): cmatrix = log2(pow(2, ceil(log2(max(matrix))/log2(2))))
 			if matrixMax !=0: cmatrix = matrixMax
 			if compare and not pair: matrix1=matrix
 		
@@ -719,9 +724,15 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax1.xaxis.grid(True,which='minor',linewidth=2)
 		
 		if h_start > 0:
-			for item in range(0,len(h_start)):
-				ax1.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
-		
+			if highlights:
+				for item in range(0,len(h_start)):
+					if dark: ax1.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+					else: ax1.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+			if lHighlights:
+				for item in range(0,len(h_start)):
+					if dark: ax1.axhspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+					else: ax1.axhspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+
 		rowcounter+=4
 		ax1.get_xaxis().set_label_coords(0.5,-0.125)
 		if numOfrows <= rowcounter and not randomBins and not wholeGenome: 
@@ -777,7 +788,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			
 			if h_start > 0:
 				for item in range(0,len(h_start)):
-					ax2.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+					if dark: ax2.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+					else: ax2.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 			
 			ax2.spines['right'].set_visible(False)
 			ax2.spines['top'].set_visible(False)
@@ -790,6 +802,50 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 		if randomBins and numOfrows > rowcounter:
 			print >>sys.stderr, 'Random bins data can be plotted only as matrix and triangular - this feature will be improved in future releases'
 			raise SystemExit
+		
+		if anchor > 0: # normalization can be useful
+			
+			ax3 = plt.subplot2grid((numOfrows, 4*len(files)), (rowcounter, exp*4), rowspan=1,colspan=4,sharex=ax1)
+			ax3.get_yaxis().set_label_coords(-0.125,0.5)
+			
+			#print fourClike,len(fourClike),start,end
+				
+			if not tripleColumn:
+				x_comps = np.arange(len(fourClike))
+				if dark: ax3.plot(x_comps,fourClike,color='white')
+				else: ax3.plot(x_comps,fourClike,color='black')
+			else:
+				if dark: ax3.plot(np.arange(start,end),fourClike,'white')
+				else: ax3.plot(np.arange(start,end),fourClike,'black')
+
+			
+			ax3.locator_params(axis='y',tight=False, nbins=3)
+			ax3.set_xlim(int(start or 1) - 0.5,int(start or 1) + length - 0.5)
+			if anchorMax > 0: ax3.set_ylim(0,anchorMax)
+			else: ax3.set_ylim(0,max(fourClike)/20.0)
+			
+			if exp==0: ax3.set_ylabel('4C-like')
+			
+			if plotTadDomains and plotDomainTicks:
+				ax3.set_xticks(tricks, minor=True)
+				ax3.xaxis.grid(True,which='minor')
+	
+			if h_start > 0:
+				for item in range(0,len(h_start)):
+					if dark: ax3.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+					else: ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+	
+			if spine > 0:
+				ax3.spines['right'].set_visible(False)
+				ax3.spines['top'].set_visible(False)
+				ax3.xaxis.set_ticks_position('bottom')
+				ax3.yaxis.set_ticks_position('left')
+	
+			rowcounter+=1
+				
+			if numOfrows <= rowcounter and not randomBins: ax3.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
+			elif numOfrows <= rowcounter and randomBins: ax3.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
+
 		
 		''' Gene plotting'''
 		
@@ -886,7 +942,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			
 			if h_start > 0:
 				for item in range(0,len(h_start)):
-					ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+					if dark: ax3.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+					else: ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 			
 			ax3.spines['right'].set_visible(False)
 			ax3.spines['left'].set_visible(False)
@@ -959,7 +1016,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			
 					if h_start > 0:
 						for item in range(0,len(h_start)):
-							ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+							if dark: ax3.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+							else: ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 			
 					if spine > 0:
 						ax3.spines['right'].set_visible(False)
@@ -1085,7 +1143,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 		
 				if h_start > 0:
 					for item in range(0,len(h_start)):
-						ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+						if dark: ax3.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+						else: ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 		
 				if spine > 0:
 					ax3.spines['right'].set_visible(False)
@@ -1133,7 +1192,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				
 				if h_start > 0:
 					for item in range(0,len(h_start)):
-						ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+						if dark: ax3.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+						else: ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 				
 				if spine > 0:
 					ax3.spines['right'].set_visible(False)
@@ -1172,7 +1232,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				
 				if h_start > 0:
 					for item in range(0,len(h_start)):
-						ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+						if dark: ax3.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+						else: ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 				
 				if spine > 0:
 					ax3.spines['right'].set_visible(False)
@@ -1216,7 +1277,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 				
 				if h_start > 0:
 					for item in range(0,len(h_start)):
-						ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+						if dark: ax3.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+						else: ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 				
 				if spine > 0:
 					ax3.spines['right'].set_visible(False)
@@ -1295,7 +1357,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			
 			if h_start > 0:
 				for item in range(0,len(h_start)):
-					ax4.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+					if dark: ax4.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+					else: ax4.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 				
 			if spine > 0:
 				ax4.spines['right'].set_visible(False)
@@ -1616,8 +1679,14 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax1.xaxis.grid(True,which='minor',linewidth=2)
 		
 		if h_start > 0:
-			for item in range(0,len(h_start)):
-				ax1.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+			if highlights:
+				for item in range(0,len(h_start)):
+					if dark: ax1.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+					else: ax1.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+			if lHighlights:
+				for item in range(0,len(h_start)):
+					if dark: ax1.axhspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+					else: ax1.axhspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')		
 		
 		ax1.get_xaxis().set_label_coords(0.5,-0.125)
 		if numOfrows == 4 and not randomBins:
@@ -1673,7 +1742,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			
 			if h_start > 0:
 				for item in range(0,len(h_start)):
-					ax2.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+					if dark: ax2.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+					else: ax2.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 			
 			ax2.spines['right'].set_visible(False)
 			ax2.spines['top'].set_visible(False)
@@ -1770,7 +1840,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			
 			if h_start > 0:
 				for item in range(0,len(h_start)):
-					ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+					if dark: ax3.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+					else: ax3.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 			
 			ax3.spines['right'].set_visible(False)
 			ax3.spines['left'].set_visible(False)
@@ -1843,7 +1914,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 		
 					if h_start > 0:
 						for item in range(0,len(h_start)):
-							pax1.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
+							if dark: pax1.axvspan(h_start[item], h_end[item], facecolor='#78D400', alpha=0.30, linestyle='dashed')
+							else: pax1.axvspan(h_start[item], h_end[item], facecolor='g', alpha=0.10, linestyle='dashed')
 		
 					pax1.get_xaxis().set_label_coords(0.5,-0.125)
 					
@@ -1930,6 +2002,7 @@ if __name__=='__main__':
 	group1.add_argument('-al', '--arcLabels', nargs='+',metavar='',default=[])
 	group1.add_argument('-ac', '--arcColors', nargs='+',metavar='',default=[])
 	group1.add_argument('-high', '--highlights',default=0,type=int,metavar='',help='default:0 - enable with 1')
+	group1.add_argument('-lhigh', '--lHighlights',default=0,type=int,metavar='',help='default:0 - enable with 1')
 	group1.add_argument('-hf', '--highFile',default='',metavar='',help='')
 	group1.add_argument('-peak', '--peakFiles', nargs='+',metavar='',default=[])
 	group1.add_argument('-g', '--plotGenes', nargs='+',metavar='',default='')
@@ -1940,6 +2013,8 @@ if __name__=='__main__':
 	group1.add_argument('-im', '--imputed',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-s', '--start',type=int,default=0,metavar='',help="default: 0")
 	group1.add_argument('-e', '--end',type=int,default=0,metavar='',help="default: matrix end")
+	group1.add_argument('-anc', '--anchor',type=int,default=0,metavar='',help="default: 0")
+	group1.add_argument('-ancm', '--anchorMax',type=int,default=0,metavar='',help="default: 0")
 	group1.add_argument('-r', '--resolution',type=int,default=100000,metavar='',help="default: 100000")
 	group1.add_argument('-rb', '--randomBins',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-wg', '--wholeGenome',type=int,default=False,metavar='',help="default: 0 - enable with 1")
@@ -2032,6 +2107,9 @@ if __name__=='__main__':
 	if args['start'] < 0 or args['end'] < 0 or args['end'] - args['start'] < 0:
 		print >>sys.stderr, 'Upps!! Start and end should be positive and end bigger than start'
 		raise SystemExit
+	if args['anchor'] > 0 and (args['end'] < args['anchor'] or args['anchor'] < args['start']):
+		print >>sys.stderr, 'Upps!! Please provide an anchor value between start and end bins'
+		raise SystemExit	
 	if len(args['peakFiles'])>0 and len(args['peakFiles'])!=len(args['files']):
 		print >>sys.stderr, 'Upps!! Please provide equal number of HiC matrix and peak files'
 		raise SystemExit
