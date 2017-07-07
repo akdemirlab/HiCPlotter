@@ -607,8 +607,13 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	if compare and pair: numOfrows+=(len(files)-1)*4
 	if pair: marray=[]
 	
-	fig=plt.figure(figsize=(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5), facecolor='w', edgecolor='w')
-	fig.set_size_inches(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5)
+	if len(files) == 1:
+		fig=plt.figure(figsize=(numOfcols*5+1, numOfrows+numOfrows/2+0.5), facecolor='w', edgecolor='w')
+		fig.set_size_inches(numOfcols*5+1, numOfrows+numOfrows/2+0.5)
+	else:
+		fig=plt.figure(figsize=(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5), facecolor='w', edgecolor='w')
+		fig.set_size_inches(numOfcols*5+2.5, numOfrows+numOfrows/2+0.5)
+	
 	if superImpose: fig.subplots_adjust(hspace=0.48,wspace=1.25)
 	else: fig.subplots_adjust(hspace=0.48,wspace=1.0)
 	if dark : plt.style.use('dark_background')
