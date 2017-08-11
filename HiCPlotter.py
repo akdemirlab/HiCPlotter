@@ -27,7 +27,7 @@ import bisect
 import warnings
 import logging
 
-version = "0.7.3 - anchor/lateral"
+version = "0.8"
 
 def read_HiCdata(filename,header=0,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -150,6 +150,24 @@ def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,wholeGenome=F
 	
 	#matrix[matrix<smooth_noise]=0
 	return matrix,nums,tricks,clast-chromosomes[chromosome][0]+1,fourClike
+
+def read_Cooldata(filename,chromosome,resolution,startBin,endBin,wholeGenome=False,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
+	import cooler
+	
+	
+	
+	c = cooler.Cooler(filename)
+	if resolution != c.info['bin-size']: print 'Be aware: resolution is not matching with the cool file!';raise SystemExit
+	if endBin == 0: print 'Be aware: you did not enter a valid genomic range!'; endBin = 1000000
+	
+	query = chromosome+':'+str(startBin*resolution)+'-'+str(endBin*resolution)
+	
+	matrix = c.matrix(balance=True).fetch(query)
+	
+	if plotInsulation or plotTadDomains and not wholeGenome: nums,tricks=insulation(matrix,ins_window,rel_window,False,startBin,True)
+	else: nums=[];tricks=[];
+	
+	return matrix,nums,tricks
 
 def read_bedGraph(filename,resolution,chromosome): # add stopping after certain chromosome passed
 	
@@ -427,7 +445,7 @@ def get_ellipse_coords(a=0.0, b=0.0, x=0.0, y=0.0, angle=0.0, k=2):
     return pts
 
 
-def insulation(matrix,w=5,tadRange=10,triple=False,mstart=0):
+def insulation(matrix,w=5,tadRange=10,triple=False,mstart=0,cooler=False):
 	
 	'''
     calculate relative minima in a given matrix
@@ -457,7 +475,7 @@ def insulation(matrix,w=5,tadRange=10,triple=False,mstart=0):
 		for j in xrange(i,i+w):
 			if j == end: break
 			else:
-				if triple:
+				if triple or cooler:
 					if isnan(matrix[j,j-2*counter]): diag +=0 # pad with zeros for nan
 					else: diag += matrix[j,j-2*counter]
 				else:
@@ -503,12 +521,12 @@ def insulation(matrix,w=5,tadRange=10,triple=False,mstart=0):
 	if len(matrix) not in pBorders: pBorders.append(len(matrix))
 	
 	if triple: pBorders=map(lambda x:x+mstart, pBorders)
-	
+	if cooler: pBorders=map(lambda x:x+mstart, pBorders)
 	return scores, pBorders
 
 def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],plotGenes='',superImpose=False,anchor=0,anchorMax=0,\
-			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],dPixels=200,compareEx='',compareSm='',upSide=False,\
-			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=False,plotDomainTicks=True,triangularHeight=False,\
+			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],dPixels=200,compareEx='',compareSm='',upSide=True,Cooler=False,\
+			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=True,plotDomainTicks=True,triangularHeight=False,\
 			highlights=0,lHighlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,pair=False,domColors=[],oExtension='',geneLabels=True,dark=False):
 	
 	'''
@@ -636,7 +654,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 	for exp in range(0,rlength):
 		rowcounter=0
 		
-		if not tripleColumn:
+		if not tripleColumn and not Cooler:
 			matrix,nums,tricks=read_HiCdata(files[exp],fileHeader,fileFooter,cleanNANs,smoothNoise,window,tadRange,plotInsulation,plotTadDomains,randomBins)
 			end=len(matrix) if end == 0 else end
 			if end > len(matrix): end=len(matrix)
@@ -651,6 +669,8 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			for element in range(0,len(matrix)):
 				fourClike.append(matrix[anchor,element])
 			matrix=matrix[start:end,start:end]
+		elif Cooler:
+			matrix,nums,tricks=read_Cooldata(files[exp],chromosome,resolution,start,end,wholeGenome,smoothNoise,window,tadRange,plotInsulation,plotTadDomains,randomBins)
 		else:
 			if bedFile == '':
 				print >>sys.stderr, 'an annotation bed file is required for triple-column sparse input.'
@@ -1987,6 +2007,7 @@ if __name__=='__main__':
 	group1.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true",default=False)
 	group1.add_argument('-da', '--dark',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-tri', '--tripleColumn',default=False,type=int,metavar='',help='default:0 - enable with 1')
+	group1.add_argument('-co', '--Cooler',default=False,type=int,metavar='',help='default:0 - enable with 1')
 	group1.add_argument('-up', '--upSide',default=False,type=int,metavar='',help='default:0 - enable with 1')
 	group1.add_argument('-bed', '--bedFile',default='',metavar='',help='')
 	group1.add_argument('-hist', '--histograms', nargs='+',metavar='',default=[])
