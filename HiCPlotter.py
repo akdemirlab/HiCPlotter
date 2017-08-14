@@ -152,18 +152,25 @@ def read_sparseHiCdata(filename,chromosome,bedFile,startBin,endBin,wholeGenome=F
 	return matrix,nums,tricks,clast-chromosomes[chromosome][0]+1,fourClike
 
 def read_Cooldata(filename,chromosome,resolution,startBin,endBin,wholeGenome=False,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
+	
 	import cooler
 	
-	
-	
 	c = cooler.Cooler(filename)
-	if resolution != c.info['bin-size']: print 'Be aware: resolution is not matching with the cool file!';raise SystemExit
-	if endBin == 0: print 'Be aware: you did not enter a valid genomic range!'; endBin = 1000000
+	if resolution != c.binsize: 
+		print 'Be aware: resolution is not matching with the cool file!'
+		raise SystemExit
+
+	start = startBin * resolution
+	if endBin == 0:
+		print 'Be aware: you did not enter a valid genomic range!'
+		end = c.chromsizes[chromosome]
+	else:
+		end = endBin * resolution
 	
-	query = chromosome+':'+str(startBin*resolution)+'-'+str(endBin*resolution)
+	query = chromosome + ':' + str(start) + '-' + str(end)
 	
 	matrix = c.matrix(balance=True).fetch(query)
-	
+		
 	if plotInsulation or plotTadDomains and not wholeGenome: nums,tricks=insulation(matrix,ins_window,rel_window,False,startBin,True)
 	else: nums=[];tricks=[];
 	
