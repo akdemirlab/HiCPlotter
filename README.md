@@ -1,4 +1,4 @@
-#HiCPlotter: Visualization of Hi-C data with genomic datasets
+# HiCPlotter: Visualization of Hi-C data with genomic datasets
 
 # About HiCPlotter
 
