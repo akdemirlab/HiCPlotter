@@ -3,9 +3,6 @@ HiCPlotter: plotting Hi-C data with additional datasets
 ------------------------------------------------------------------------------------------'''
 
 import os,sys
-if sys.version_info[0] != 2 or sys.version_info[1] != 7:
-	print >>sys.stderr, "\nYou are using python" + str(sys.version_info[0]) + '.' + str(sys.version_info[1]) + " HiCPlotter needs python2.7.*!\n"
-	sys.exit()
 
 import platform
 if platform.platform().split('-')[0]=='Linux' or platform.platform().split('-')[0]=='Windows':
@@ -27,7 +24,7 @@ import bisect
 import warnings
 import logging
 
-version = "0.8"
+version = "0.8.1"
 
 def read_HiCdata(filename,header=0,footer=0,clean_nans=True,smooth_noise=0.5,ins_window=5,rel_window=8,plotInsulation=True,plotTadDomains=False,randomBins=False):
 	
@@ -533,7 +530,7 @@ def insulation(matrix,w=5,tadRange=10,triple=False,mstart=0,cooler=False):
 
 def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histograms=[],histLabels=[],fillHist=[],histMax=[],verbose=False,fileHeader=0,fileFooter=0,matrixMax=0,histColors=[],barPlots=[],barLabels=[],plotGenes='',superImpose=False,anchor=0,anchorMax=0,\
 			start=0,end=0,tileLabels=[],tilePlots=[],tileColors=[],tileText=False,arcLabels=[],arcPlots=[],arcColors=[],peakFiles=[],epiLogos='',window=5,tadRange=8,tripleColumn=False,bedFile='',barColors=[],dPixels=200,compareEx='',compareSm='',upSide=True,Cooler=False,\
-			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=True,plotDomainTicks=True,triangularHeight=False,\
+			smoothNoise=0.5,cleanNANs=True,plotTriangular=True,plotTadDomains=False,randomBins=False,wholeGenome=False,plotPublishedTadDomains=False,plotDomainsAsBars=False,imputed=False,barMax=[],spine=True,plotDomainTicks=True,triangularHeight=False,notLog=False,\
 			highlights=0,lHighlights=0,highFile='',heatmapColor=3,highResolution=True,plotInsulation=True,plotCustomDomains=False,publishedTadDomainOrganism=True,customDomainsFile=[],compare=False,pair=False,domColors=[],oExtension='',geneLabels=True,dark=False):
 	
 	'''
@@ -551,6 +548,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
     verbose			(-v)		: print version and arguments into a file.
     tripleColumn	(-tri)		: a boolean if input file is from HiC-Pro pipeline.
     dark			(-d)		: a boolean to use black background for the output.
+    notLog			(-nl)		: a boolean to plot raw matrix without log2 transformation.
     bedFile			(-bed)		: a file name for bin annotations, if -tri parameter is set.
     plotGenes		(-g)		: a sorted bed file for plotting the locations of the genes.
     geneLabels		(-gl)		: a boolean for plotting gene labels (1:default) or not (0).
@@ -714,15 +712,27 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			
 		if not wholeGenome:
 			if heatmapColor < 5:
-				with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=plt.get_cmap(cmaps[heatmapColor]),origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
+				if not notLog: 
+					with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=plt.get_cmap(cmaps[heatmapColor]),origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
+														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
+				else:  
+					with np.errstate(divide='ignore'): img=ax1.imshow(matrix,cmap=plt.get_cmap(cmaps[heatmapColor]),origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
 														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
 			elif heatmapColor == 3:
 				cmap = plt.get_cmap(cmaps[heatmapColor])
 				cmap.set_over('black')
-				with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=cmap,origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
+				if not notLog:
+					with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),cmap=cmap,origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
+														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
+				else:
+					with np.errstate(divide='ignore'): img=ax1.imshow(matrix,cmap=cmap,origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
 														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
 			else:
-				with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
+				if not notLog:
+					with np.errstate(divide='ignore'): img=ax1.imshow(log2(matrix),origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
+														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
+				else:
+					with np.errstate(divide='ignore'): img=ax1.imshow(matrix,origin=orientation,interpolation="nearest",extent=(int(start or 1) - 0.5,\
 														  		  int(start or 1) + length - 0.5,int(start or 1) - 0.5,int(start or 1) + length - 0.5),aspect='auto')
 		else:
 			if heatmapColor < 5:
@@ -773,7 +783,11 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			plt.setp(ax1.get_xticklabels(), visible=True)
 			ax1.set_xlabel('Chromosome %s Mb (resolution: %sKb)' % (schr , resolution/1000))
 		elif numOfrows <= rowcounter and randomBins: ax1.set_xlabel('Chromosome %s (Genomic Bins)' % (schr))
-		elif numOfrows <= rowcounter and wholeGenome: ax1.set_xlabel('')
+		elif numOfrows <= rowcounter and wholeGenome: 
+			ax1.set_xlabel('')
+			cax = divider.append_axes("bottom", size="2.5%", pad=0.9)
+			cbar = plt.colorbar(img, cax=cax, ticks=MultipleLocator(2.0), format="%.1f",orientation='horizontal',extendfrac='auto',spacing='uniform')
+			plt.setp(ax1.get_xticklabels(), visible=True)
 		else:
 			cax = divider.append_axes("bottom", size="2.5%", pad=0.1)
 			cbar = plt.colorbar(img, cax=cax, ticks=MultipleLocator(2.0), format="%.1f",orientation='horizontal',extendfrac='auto',spacing='uniform')
@@ -2013,6 +2027,7 @@ if __name__=='__main__':
 	group1.add_argument('-h', '--help', action="help")
 	group1.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true",default=False)
 	group1.add_argument('-da', '--dark',type=int,default=False,metavar='',help="default: 0 - enable with 1")
+	group1.add_argument('-nl', '--notLog',type=int,default=False,metavar='',help="default: 0 - enable with 1")
 	group1.add_argument('-tri', '--tripleColumn',default=False,type=int,metavar='',help='default:0 - enable with 1')
 	group1.add_argument('-co', '--Cooler',default=False,type=int,metavar='',help='default:0 - enable with 1')
 	group1.add_argument('-up', '--upSide',default=False,type=int,metavar='',help='default:0 - enable with 1')
