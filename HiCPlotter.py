@@ -787,7 +787,7 @@ def HiCplotter(files=[],names=[],resolution=100000,chromosome='',output='',histo
 			ax1.set_xlabel('')
 			cax = divider.append_axes("bottom", size="2.5%", pad=0.9)
 			cbar = plt.colorbar(img, cax=cax, ticks=MultipleLocator(2.0), format="%.1f",orientation='horizontal',extendfrac='auto',spacing='uniform')
-			plt.setp(ax1.get_xticklabels(), visible=True)
+			plt.setp(ax1.get_xticklabels(), visible=False)
 		else:
 			cax = divider.append_axes("bottom", size="2.5%", pad=0.1)
 			cbar = plt.colorbar(img, cax=cax, ticks=MultipleLocator(2.0), format="%.1f",orientation='horizontal',extendfrac='auto',spacing='uniform')
