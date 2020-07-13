@@ -185,11 +185,11 @@ For visualizing any type of genomic data, HiCPlotter uses bedGraph format.
 	chromA  chromStartA  chromEndA  dataValueA color (optional)     text (optional)
 	chr1	10000		 10500		10.0	   250,13,27		   Polycomb
 
-4th column should be a floating number for histograms.
+4th column must be a floating number for histograms.
 
-5th column should be an rgb color for tile or arc plots. 
+5th column must be an rgb color for tile or arc plots. 
 
-6th column should be a string for tile plots. _Columns after 6th will be ignored._
+6th column must be a string for tile plots. _Columns after 6th will be ignored._
 
 ## Peak File
 
